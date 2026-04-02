@@ -463,7 +463,7 @@ export default function RoomPage() {
                   onClick={() => toggleSelection(option.placeId)}
                   className={`p-6 rounded-[2.5rem] border transition-all duration-300 cursor-pointer group ${
                     isActive 
-                      ? 'bg-orange-500/10 border-orange-500/60 shadow-[0_0_40px_-15px_rgba(249,115,22,0.3)] scale-[1.02]' 
+                      ? 'bg-emerald-500/10 border-emerald-500/60 shadow-[0_0_40px_-15px_rgba(16,185,129,0.3)] scale-[1.02]' 
                       : 'bg-slate-900/40 border-white/5 hover:border-white/10 hover:translate-x-1'
                   }`}
                 >
@@ -479,10 +479,10 @@ export default function RoomPage() {
                         <div className="h-1.5 flex-1 bg-slate-800/50 rounded-full overflow-hidden">
                           <div className="h-full bg-gradient-to-r from-orange-500 to-rose-500" style={{ width: `${(option.voteCount / totalVotes) * 100}%` }}></div>
                         </div>
-                        {isActuallyVoted && <div className="text-[10px] font-black text-orange-500 animate-pulse">MY VOTE</div>}
+                        {isActuallyVoted && <div className="text-[10px] font-black text-emerald-500 animate-pulse">MY VOTE</div>}
                       </div>
                     </div>
-                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${isActive ? 'bg-orange-500 border-orange-500 scale-110' : 'border-white/10 bg-slate-900'}`}>
+                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${isActive ? 'bg-emerald-500 border-emerald-500 scale-110' : 'border-white/10 bg-slate-900'}`}>
                       {isActive && <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
                     </div>
                   </div>

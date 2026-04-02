@@ -228,9 +228,9 @@ export default function MapComponent({
 
               {isHovered && (
                 <CustomOverlayMap position={{ lat: Number(item.y), lng: Number(item.x) }} yAnchor={1.6}>
-                  <div className="px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-white/20 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                  <div className="px-3 py-1.5 bg-orange-500 backdrop-blur-none border border-white/30 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                     <span className="text-white text-[11px] font-bold whitespace-nowrap">{item.name}</span>
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] border-t-slate-900/95"></div>
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] border-t-orange-500"></div>
                   </div>
                 </CustomOverlayMap>
               )}
@@ -253,21 +253,21 @@ export default function MapComponent({
             >
               <CustomOverlayMap position={{ lat: Number(place.y), lng: Number(place.x) }}>
                 <div className={`relative flex flex-col items-center transition-all duration-300 ${isHovered ? 'scale-125 -translate-y-1' : 'scale-100'}`}>
-                  {/* 선택된 경우 로즈 컬러, 미선택 시 주황색 적용 */}
+                  {/* 선택된 경우 초록색, 미선택 시 주황색 적용 */}
                   <svg 
                     width="28" 
                     height="34" 
                     viewBox="0 0 34 42" 
                     fill="none" 
                     xmlns="http://www.w3.org/2000/svg" 
-                    className={`drop-shadow-sm ${isVoted ? 'drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]' : 'drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]'}`}
+                    className={`drop-shadow-sm ${isVoted ? 'drop-shadow-[0_0_12px_rgba(16,185,129,0.7)]' : 'drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]'}`}
                   >
                     <path 
                       d="M17 0C7.61116 0 0 7.61116 0 17C0 27.502 14.5447 40.5055 16.1477 41.687C16.4253 41.8906 16.7577 42 17 42C17.2423 42 17.5747 41.8906 17.8523 41.687C19.4553 40.5055 34 27.502 34 17C34 7.61116 26.3888 0 17 0Z" 
-                      fill={isVoted ? "#F43F5E" : "#F97316"}
+                      fill={isVoted ? "#10B981" : "#F97316"}
                     />
                     {isVoted ? (
-                      <path d="M11 18.5L15 22.5L23 14.5" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M11 18.5L15 22.5L23 14.5" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
                     ) : (
                       <path d="M17 11L18.8541 14.7578L23 15.3647L20 18.2853L20.7082 22.4102L17 20.4611L13.2918 22.4102L14 18.2853L11 15.3647L15.1459 14.7578L17 11Z" fill="white"/>
                     )}
@@ -277,9 +277,9 @@ export default function MapComponent({
               </CustomOverlayMap>
               
               <CustomOverlayMap position={{ lat: Number(place.y), lng: Number(place.x) }} yAnchor={1.6}>
-                <div className={`px-3 py-1.5 bg-rose-600 backdrop-blur-none border border-white/30 rounded-lg shadow-2xl transition-all duration-200 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+                <div className={`px-3 py-1.5 ${isVoted ? 'bg-emerald-600' : 'bg-orange-500'} backdrop-blur-none border border-white/30 rounded-lg shadow-2xl transition-all duration-200 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
                   <span className="text-white text-[11px] font-bold whitespace-nowrap">{place.name}</span>
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] border-t-rose-600"></div>
+                  <div className={`absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] ${isVoted ? 'border-t-emerald-600' : 'border-t-orange-500'}`}></div>
                 </div>
               </CustomOverlayMap>
             </div>
