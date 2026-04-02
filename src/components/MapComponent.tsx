@@ -20,6 +20,7 @@ interface MapComponentProps {
   onHoverEnter?: (place: MapPlace) => void;
   onHoverLeave?: () => void;
   onClickPlace?: (place: MapPlace) => void;
+  votedPlaceIds?: string[];
 }
 
 export default function MapComponent({ 
@@ -31,7 +32,8 @@ export default function MapComponent({
   onSearchNearby,
   onHoverEnter,
   onHoverLeave,
-  onClickPlace
+  onClickPlace,
+  votedPlaceIds = []
 }: MapComponentProps) {
   // layout.tsx에서 이미 스크립트를 로드했지만, 컴포넌트 레벨에서 로딩 상태를 확인하기 위해 사용
   const [loading, error] = useKakaoLoader({
@@ -56,8 +58,12 @@ export default function MapComponent({
         setMyPos(newPos);
         
         // 지도가 처음 로드되었을 때만 내 위치를 중심으로 설정
-        if (!isInitialCentered && map) {
+        // [수정] 외부 목표 센터(1번 가게 등)가 없을 때만 내 위치로 초기 이동
+        if (!isInitialCentered && map && !externalCenter) {
           map.setCenter(new window.kakao.maps.LatLng(newPos.lat, newPos.lng));
+          setIsInitialCentered(true);
+        } else if (!isInitialCentered && map && externalCenter) {
+          // 외부 센터가 이미 있다면 GPS 초기 이동은 건너뛰고 상태만 초기화 완료로 표시
           setIsInitialCentered(true);
         }
       },
@@ -66,7 +72,7 @@ export default function MapComponent({
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [map, isInitialCentered]);
+  }, [map, isInitialCentered, externalCenter]);
 
   // 외부(부모)에서 명시적으로 좌표가 내려오면 해당 위치로 지도 이동 (시각화 연동)
   useEffect(() => {
@@ -180,7 +186,7 @@ export default function MapComponent({
       </div>
 
       <Map
-        center={{ lat: 37.5665, lng: 126.9780 }}
+        center={externalCenter || { lat: 37.5665, lng: 126.9780 }}
         style={{ width: '100%', height: '100%' }}
         onCreate={setMap}
         onIdle={handleCenterChange}
@@ -248,7 +254,11 @@ export default function MapComponent({
                   {/* 원래의 로즈 컬러 스타 마커 스타일로 복구 */}
                   <svg width="28" height="34" viewBox="0 0 34 42" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]">
                     <path d="M17 0C7.61116 0 0 7.61116 0 17C0 27.502 14.5447 40.5055 16.1477 41.687C16.4253 41.8906 16.7577 42 17 42C17.2423 42 17.5747 41.8906 17.8523 41.687C19.4553 40.5055 34 27.502 34 17C34 7.61116 26.3888 0 17 0Z" fill="#F43F5E"/>
-                    <path d="M17 11L18.8541 14.7578L23 15.3647L20 18.2853L20.7082 22.4102L17 20.4611L13.2918 22.4102L14 18.2853L11 15.3647L15.1459 14.7578L17 11Z" fill="white"/>
+                    {votedPlaceIds.includes(place.placeId) ? (
+                      <path d="M11 18.5L15 22.5L23 14.5" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    ) : (
+                      <path d="M17 11L18.8541 14.7578L23 15.3647L20 18.2853L20.7082 22.4102L17 20.4611L13.2918 22.4102L14 18.2853L11 15.3647L15.1459 14.7578L17 11Z" fill="white"/>
+                    )}
                   </svg>
                   <div className="w-1 h-1"></div>
                 </div>

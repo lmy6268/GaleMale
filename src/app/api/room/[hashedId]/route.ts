@@ -23,18 +23,27 @@ export async function GET(
     }
 
     // 투표에 참여한 고유 사용자 수 카운트
-    const Vote = (await import('@/models/Vote')).default; // 다이나믹 임포트로 순환 참조 방지 및 필요한 경우 로드
-    const uniqueVoters = await Vote.distinct('userId', { roomId: roomData._id });
+    const Vote = (await import('@/models/Vote')).default; // 다이나믹 임포트로 순환 참조 방지
+    const uniqueVoters = await Vote.distinct('userId', { roomId: (roomData as any)._id });
     const participantCount = uniqueVoters.length;
 
     return NextResponse.json({
       ...roomData,
       participantCount
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Room fetch error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
+}
+
+interface UpdateRoomBody {
+  title?: string;
+  deadline?: string;
+  allowMultipleVotes?: boolean;
+  allowAddOptions?: boolean;
+  isClosed?: boolean;
+  options?: any[]; // options structure is complex, using any[] for now or defining it properly
 }
 
 export async function PATCH(
@@ -49,8 +58,8 @@ export async function PATCH(
 
     await connectToDatabase();
     const { hashedId } = await params;
-    const body = await req.json();
-    const { title, deadline, allowMultipleVotes, allowAddOptions, options } = body;
+    const body: UpdateRoomBody = await req.json();
+    const { title, deadline, allowMultipleVotes, allowAddOptions, isClosed, options } = body;
 
     const room = await Room.findOne({ hashedId });
     if (!room) {
@@ -58,7 +67,8 @@ export async function PATCH(
     }
 
     // 방장 권한 확인
-    const currentUserId = (session.user as any).id || session.user.email;
+    const sessionUser = session.user as { id?: string, email?: string };
+    const currentUserId = sessionUser.id || sessionUser.email;
     if (room.creatorUserId !== currentUserId) {
       return NextResponse.json({ error: 'Only the creator can edit this room' }, { status: 403 });
     }
@@ -68,16 +78,55 @@ export async function PATCH(
     if (deadline) room.deadline = new Date(deadline);
     if (typeof allowMultipleVotes === 'boolean') room.allowMultipleVotes = allowMultipleVotes;
     if (typeof allowAddOptions === 'boolean') room.allowAddOptions = allowAddOptions;
+    if (typeof isClosed === 'boolean') room.isClosed = isClosed;
     if (options && Array.isArray(options)) {
-      // 기존 옵션에 없는 새로운 장소만 추가하거나 전체 교체 (여기서는 전체 교체 로직 예시)
-      // 실제로는 중복 체크 후 push하는 것이 안전함
       room.options = options;
     }
 
     await room.save();
     return NextResponse.json({ success: true, room });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Room update error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ hashedId: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    await connectToDatabase();
+    const { hashedId } = await params;
+
+    const room = await Room.findOne({ hashedId });
+    if (!room) {
+      return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+    }
+
+    // 방장 권한 확인
+    const sessionUser = session.user as { id?: string, email?: string };
+    const currentUserId = sessionUser.id || sessionUser.email;
+    if (room.creatorUserId !== currentUserId) {
+      return NextResponse.json({ error: 'Only the creator can delete this room' }, { status: 403 });
+    }
+
+    // 방과 관련된 모든 투표 데이터 삭제 (종속성 정리)
+    const Vote = (await import('@/models/Vote')).default;
+    await Vote.deleteMany({ roomId: room._id });
+    
+    // 방 삭제
+    await Room.deleteOne({ _id: room._id });
+
+    return NextResponse.json({ success: true, message: 'Room deleted successfully' });
+  } catch (error: unknown) {
+    console.error('Room deletion error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+

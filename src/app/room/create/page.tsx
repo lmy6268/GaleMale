@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import MapComponent, { MapPlace } from '@/components/MapComponent';
-import PlaceImage from '@/components/PlaceImage';
 
 interface PlaceOption {
   placeId: string;
@@ -464,17 +463,7 @@ export default function CreateRoomPage() {
                         } flex flex-col gap-3 group animate-in fade-in zoom-in-95 cursor-pointer`}
                       >
                         <div className="flex justify-between items-start">
-                          <div className="flex-1 min-w-0 flex gap-4">
-                            {/* 대표 이미지 노출 */}
-                            <div className="shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-slate-800 border border-white/5 relative group-hover:border-orange-500/30 transition-colors">
-                              <PlaceImage 
-                                src={item.imageUrl} 
-                                name={item.place_name} 
-                                category={item.category_name} 
-                                className="w-full h-full"
-                              />
-                            </div>
-
+                          <div className="flex-1 min-w-0">
                             <div className="flex-1 min-w-0 py-0.5">
                               <div className="flex items-center flex-wrap gap-1.5 mb-1 text-sm"><h4 className="text-white font-bold truncate">{item.place_name}</h4>{isSelected && <span className="text-[9px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded-md font-bold border border-orange-500/20">추가됨</span>}</div>
                               <div className="flex items-center flex-wrap gap-2 mb-1.5 text-[10px] font-bold"><span className="px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-400 border border-orange-500/20">{mainCategory}</span><span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-white/5">{categoryClean}</span></div>
