@@ -187,10 +187,32 @@ export default function CreateRoomPage() {
     return () => observerRef.current?.disconnect();
   }, [isSearching, isSearchingMore, isEnd, handleSearch]);
 
+  const handleAddPlace = useCallback((item: KakaoPlace) => {
+    const isAlreadyInPlaces = places.some(p => p.placeId === item.id);
+    if (!isAlreadyInPlaces) {
+      const categoryClean = item.category_name.split(' > ').pop();
+      const mainCategory = item.category_group_name || item.category_name.split(' > ')[0];
+      
+      setPlaces([...places, {
+        placeId: item.id,
+        name: item.place_name,
+        address: item.road_address_name || item.address_name,
+        category: `${mainCategory} > ${categoryClean}`,
+        placeUrl: item.place_url,
+        x: item.x,
+        y: item.y
+      }]);
+    }
+  }, [places]);
+
   if (status === 'unauthenticated') {
     if (typeof window !== 'undefined') router.replace('/');
     return null;
   }
+
+  const handleRemovePlace = (placeId: string) => {
+    setPlaces(places.filter(p => p.placeId !== placeId));
+  };
 
   const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -234,10 +256,6 @@ export default function CreateRoomPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleRemovePlace = (placeId: string) => {
-    setPlaces(places.filter(p => p.placeId !== placeId));
   };
 
   const handleFocusPlace = (item: KakaoPlace | MapPlace) => {
@@ -425,6 +443,10 @@ export default function CreateRoomPage() {
                 onHoverEnter={(item) => handleMouseEnterPlace(item, false)}
                 onHoverLeave={handleMouseLeavePlace}
                 onClickPlace={handleFocusPlace}
+                onAddPlace={(item) => {
+                  const original = searchResults.find(s => s.id === item.placeId);
+                  if (original) handleAddPlace(original);
+                }}
               />
             </div>
 
@@ -500,7 +522,7 @@ export default function CreateRoomPage() {
                             </div>
                           </div>
                           <div className="flex flex-col gap-2 shrink-0 ml-2" onClick={(e) => e.stopPropagation()}>
-                            <button type="button" onClick={() => isSelected ? setPlaces(places.filter(p => p.placeId !== item.id)) : setPlaces([...places, { placeId: item.id, name: item.place_name, address: item.road_address_name || item.address_name, category: item.category_name, placeUrl: item.place_url, x: item.x, y: item.y, imageUrl: item.imageUrl }])} className={`px-4 py-2 text-[12px] font-bold rounded-xl transition-all shadow-lg ${isSelected ? 'bg-slate-700 text-slate-400' : 'bg-orange-600 text-white hover:bg-orange-500 shadow-orange-900/20'}`}>{isSelected ? '제거' : '추가'}</button>
+                            <button type="button" onClick={() => isSelected ? handleRemovePlace(item.id) : handleAddPlace(item)} className={`px-4 py-2 text-[12px] font-bold rounded-xl transition-all shadow-lg ${isSelected ? 'bg-slate-700 text-slate-400' : 'bg-orange-600 text-white hover:bg-orange-500 shadow-orange-900/20'}`}>{isSelected ? '제거' : '추가'}</button>
                             <a href={item.place_url} target="_blank" rel="noreferrer" className="px-4 py-2 text-[11px] font-bold text-slate-400 hover:text-white bg-slate-900/50 border border-white/10 rounded-xl hover:bg-slate-800 transition-all text-center">상세보기</a>
                           </div>
                         </div>

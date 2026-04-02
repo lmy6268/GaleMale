@@ -370,6 +370,9 @@ export default function RoomPage() {
             onHoverEnter={(place) => setHoveredPlaceId(place.placeId)}
             onHoverLeave={() => setHoveredPlaceId(null)}
             onClickPlace={(place) => {
+              setMapTargetCenter({ lat: Number(place.y), lng: Number(place.x) });
+            }}
+            onAddPlace={(place) => {
               const original = searchResults.find(s => s.id === place.placeId);
               if (original) handleAddOption(original);
             }}

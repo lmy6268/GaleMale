@@ -20,6 +20,7 @@ interface MapComponentProps {
   onHoverEnter?: (place: MapPlace) => void;
   onHoverLeave?: () => void;
   onClickPlace?: (place: MapPlace) => void;
+  onAddPlace?: (place: MapPlace) => void;
   votedPlaceIds?: string[];
 }
 
@@ -33,6 +34,7 @@ export default function MapComponent({
   onHoverEnter,
   onHoverLeave,
   onClickPlace,
+  onAddPlace,
   votedPlaceIds = []
 }: MapComponentProps) {
   // layout.tsx에서 이미 스크립트를 로드했지만, 컴포넌트 레벨에서 로딩 상태를 확인하기 위해 사용
@@ -44,6 +46,7 @@ export default function MapComponent({
   const [map, setMap] = useState<kakao.maps.Map | null>(null);
   const [myPos, setMyPos] = useState<{ lat: number; lng: number } | null>(null);
   const [isInitialCentered, setIsInitialCentered] = useState(false);
+  const [clickedPlaceId, setClickedPlaceId] = useState<string | null>(null);
 
   const externalLat = externalCenter?.lat;
   const externalLng = externalCenter?.lng;
@@ -208,30 +211,55 @@ export default function MapComponent({
           const isSelected = places.some(p => p.placeId === item.placeId);
           if (isSelected) return null;
           const isHovered = hoveredPlaceId === item.placeId;
+          const isClicked = clickedPlaceId === item.placeId;
           
           return (
             <div 
               key={`search-group-${item.placeId}`} 
               onMouseEnter={() => onHoverEnter?.(item)}
               onMouseLeave={() => onHoverLeave?.()}
-              onClick={() => onClickPlace?.(item)}
+              onClick={() => {
+                setClickedPlaceId(isClicked ? null : item.placeId);
+                onClickPlace?.(item);
+              }}
               className="group cursor-pointer"
             >
               <CustomOverlayMap position={{ lat: Number(item.y), lng: Number(item.x) }}>
-                <div className={`relative flex flex-col items-center transition-all duration-300 ${isHovered ? 'scale-110 -translate-y-0.5' : 'scale-90 opacity-100'}`}>
-                  {/* 원래의 주황색 마커 스타일로 복구 */}
+                <div className={`relative flex flex-col items-center transition-all duration-300 ${isHovered || isClicked ? 'scale-110 -translate-y-0.5' : 'scale-90 opacity-100'}`}>
+                  {/* 원래의 주황색 마커 스타일 */}
                   <svg width="26" height="32" viewBox="0 0 34 42" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-sm">
-                    <path d="M17 0C7.61116 0 0 7.61116 0 17C0 27.502 14.5447 40.5055 16.1477 41.687C16.4253 41.8906 16.7577 42 17 42C17.2423 42 17.5747 41.8906 17.8523 41.687C19.4553 40.5055 34 27.502 34 17C34 7.61116 26.3888 0 17 0Z" fill="#FDBA74"/>
+                    <path d="M17 0C7.61116 0 0 7.61116 0 17C0 27.502 14.5447 40.5055 16.1477 41.687C16.4253 41.8906 16.7577 42 17 42C17.2423 42 17.5747 41.8906 17.8523 41.687C19.4553 40.5055 34 27.502 34 17C34 7.61116 26.3888 0 17 0Z" fill={isClicked ? "#F97316" : "#FDBA74"}/>
                     <circle cx="17" cy="17" r="7" fill="white" fillOpacity="1"/>
                   </svg>
                   <div className="w-1 h-1"></div>
                 </div>
               </CustomOverlayMap>
 
-              {isHovered && (
-                <CustomOverlayMap position={{ lat: Number(item.y), lng: Number(item.x) }} yAnchor={1.6}>
-                  <div className="px-3 py-1.5 bg-orange-500 backdrop-blur-none border border-white/30 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+              {(isHovered || isClicked) && (
+                <CustomOverlayMap 
+                  position={{ lat: Number(item.y), lng: Number(item.x) }} 
+                  yAnchor={1.6}
+                  zIndex={100}
+                >
+                  <div 
+                    onClick={(e) => e.stopPropagation()} 
+                    className="px-3 py-2 bg-orange-500 backdrop-blur-none border border-white/30 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200 flex flex-col items-center gap-1.5"
+                  >
                     <span className="text-white text-[11px] font-bold whitespace-nowrap">{item.name}</span>
+                    {onAddPlace && (
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddPlace(item);
+                          setClickedPlaceId(null);
+                        }}
+                        className="w-full py-1 bg-white/20 hover:bg-white/30 text-white text-[10px] font-extrabold rounded-md transition-all active:scale-95 flex items-center justify-center gap-1"
+                      >
+                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4"></path></svg>
+                        후보 추가
+                      </button>
+                    )}
                     <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] border-t-orange-500"></div>
                   </div>
                 </CustomOverlayMap>
