@@ -45,6 +45,9 @@ export default function MapComponent({
   const [myPos, setMyPos] = useState<{ lat: number; lng: number } | null>(null);
   const [isInitialCentered, setIsInitialCentered] = useState(false);
 
+  const externalLat = externalCenter?.lat;
+  const externalLng = externalCenter?.lng;
+
   // 실시간 GPS 위치 추적
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -59,10 +62,10 @@ export default function MapComponent({
         
         // 지도가 처음 로드되었을 때만 내 위치를 중심으로 설정
         // [수정] 외부 목표 센터(1번 가게 등)가 없을 때만 내 위치로 초기 이동
-        if (!isInitialCentered && map && !externalCenter) {
+        if (!isInitialCentered && map && !externalLat) {
           map.setCenter(new window.kakao.maps.LatLng(newPos.lat, newPos.lng));
           setIsInitialCentered(true);
-        } else if (!isInitialCentered && map && externalCenter) {
+        } else if (!isInitialCentered && map && externalLat) {
           // 외부 센터가 이미 있다면 GPS 초기 이동은 건너뛰고 상태만 초기화 완료로 표시
           setIsInitialCentered(true);
         }
@@ -72,20 +75,19 @@ export default function MapComponent({
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [map, isInitialCentered, externalCenter]);
+  }, [map, isInitialCentered, externalLat, externalLng]);
 
   // 외부(부모)에서 명시적으로 좌표가 내려오면 해당 위치로 지도 이동 (시각화 연동)
   useEffect(() => {
-    if (externalCenter && map) {
-      const { lat, lng } = externalCenter;
+    if (externalLat && externalLng && map) {
       const currentCenter = map.getCenter();
       // 현재 중심과 목표 중심이 충분히 다를 때만 이동
-      if (Math.abs(currentCenter.getLat() - lat) > 0.00001 || Math.abs(currentCenter.getLng() - lng) > 0.00001) {
-        const moveLatLng = new window.kakao.maps.LatLng(lat, lng);
+      if (Math.abs(currentCenter.getLat() - externalLat) > 0.00001 || Math.abs(currentCenter.getLng() - externalLng) > 0.00001) {
+        const moveLatLng = new window.kakao.maps.LatLng(externalLat, externalLng);
         map.panTo(moveLatLng);
       }
     }
-  }, [externalCenter, map]);
+  }, [externalLat, externalLng, map]);
 
   const handleCenterChange = () => {
     if (!map || !onCenterChange) return;

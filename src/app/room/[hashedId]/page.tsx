@@ -345,8 +345,8 @@ export default function RoomPage() {
           
           {isEditingDeadline && (
             <div className="max-w-sm mx-auto p-4 rounded-2xl bg-slate-900 border border-white/5 space-y-3 animate-in fade-in slide-in-from-top-2">
-               <div className="flex gap-2">
-                 <input type="date" value={newDeadlineDate} onChange={(e) => setNewDeadlineDate(e.target.value)} className="flex-1 bg-slate-950 border border-white/10 rounded-xl px-3 py-1.5 text-sm outline-none" />
+               <div className="flex flex-col sm:flex-row gap-2">
+                 <input type="date" value={newDeadlineDate} onChange={(e) => setNewDeadlineDate(e.target.value)} className="flex-[2] bg-slate-950 border border-white/10 rounded-xl px-3 py-1.5 text-sm outline-none" />
                  <input type="time" value={newDeadlineTime} onChange={(e) => setNewDeadlineTime(e.target.value)} className="flex-1 bg-slate-950 border border-white/10 rounded-xl px-3 py-1.5 text-sm outline-none" />
                </div>
                <button 

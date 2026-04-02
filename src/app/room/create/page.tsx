@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import MapComponent, { MapPlace } from '@/components/MapComponent';
@@ -104,8 +104,18 @@ export default function CreateRoomPage() {
     setMinDate(todayStr);
   }, []);
 
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+
+  // 검색어 디바운싱
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const handleSearch = useCallback(async (reset: boolean = true) => {
-    if (!searchQuery.trim() && !categoryFilter) return;
+    if (!debouncedSearchQuery.trim() && !categoryFilter) return;
     
     const targetPage = reset ? 1 : page + 1;
     if (reset) {
@@ -117,7 +127,7 @@ export default function CreateRoomPage() {
 
     try {
       let url = `/api/search?page=${targetPage}`;
-      if (searchQuery.trim()) url += `&q=${encodeURIComponent(searchQuery)}`;
+      if (debouncedSearchQuery.trim()) url += `&q=${encodeURIComponent(debouncedSearchQuery)}`;
       if (categoryFilter) url += `&category_group_code=${categoryFilter}`;
       if (searchCenter) url += `&x=${searchCenter.x}&y=${searchCenter.y}&radius=3000`;
 
@@ -150,13 +160,32 @@ export default function CreateRoomPage() {
       setIsSearching(false);
       setIsSearchingMore(false);
     }
-  }, [searchQuery, categoryFilter, page, searchCenter]);
+  }, [debouncedSearchQuery, categoryFilter, page, searchCenter]);
 
   useEffect(() => {
-    if (searchQuery.trim() || categoryFilter) {
+    if (debouncedSearchQuery.trim() || categoryFilter) {
       handleSearch(true);
     }
-  }, [categoryFilter, handleSearch, searchQuery]);
+  }, [categoryFilter, debouncedSearchQuery]); // handleSearch 제외하여 지도 이동에 따른 자동 검색 방지
+
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  // 무한 스크롤 Observer 설정
+  useEffect(() => {
+    if (isSearching || isSearchingMore || isEnd) return;
+
+    const sentinel = document.getElementById('search-sentinel');
+    if (!sentinel) return;
+
+    observerRef.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        handleSearch(false);
+      }
+    }, { threshold: 0.1 });
+
+    observerRef.current.observe(sentinel);
+    return () => observerRef.current?.disconnect();
+  }, [isSearching, isSearchingMore, isEnd, handleSearch]);
 
   if (status === 'unauthenticated') {
     if (typeof window !== 'undefined') router.replace('/');
@@ -359,8 +388,8 @@ export default function CreateRoomPage() {
                 </div>
               )}
             </div>
-            <div className="flex gap-3">
-              <div className="flex-1">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-[2]">
                 <input 
                   type="date" 
                   value={deadlineDate}
@@ -369,7 +398,7 @@ export default function CreateRoomPage() {
                   className="w-full px-5 py-4 rounded-xl bg-slate-800/50 border border-slate-700/50 outline-none focus:border-rose-500 focus:bg-slate-800 transition-colors text-white [color-scheme:dark]"
                 />
               </div>
-              <div className="w-32 md:w-40">
+              <div className="flex-1">
                 <input 
                   type="time" 
                   value={deadlineTime}
@@ -478,10 +507,11 @@ export default function CreateRoomPage() {
                       </div>
                     );
                   })}
+                  {/* 무한 스크롤 관찰용 sentinel */}
                   {!isEnd && (
-                    <button type="button" onClick={() => handleSearch(false)} className="w-full py-3 rounded-xl border border-dashed border-slate-700 text-slate-400 text-xs font-bold hover:bg-slate-800/50 transition-colors disabled:opacity-50">
-                      {isSearchingMore ? '불러오는 중...' : '결과 더 보기 ▼'}
-                    </button>
+                    <div id="search-sentinel" className="py-8 flex justify-center items-center">
+                      <div className="w-6 h-6 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin"></div>
+                    </div>
                   )}
                 </div>
               )}
