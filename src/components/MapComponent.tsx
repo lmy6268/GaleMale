@@ -241,6 +241,8 @@ export default function MapComponent({
         {/* 확정 후보 마커 (진한 Rose 컬러 + 강한 강조) */}
         {places.map((place) => {
           const isHovered = hoveredPlaceId === place.placeId;
+          const isVoted = votedPlaceIds.includes(place.placeId);
+          
           return (
             <div 
               key={`place-group-${place.placeId}`} 
@@ -251,10 +253,20 @@ export default function MapComponent({
             >
               <CustomOverlayMap position={{ lat: Number(place.y), lng: Number(place.x) }}>
                 <div className={`relative flex flex-col items-center transition-all duration-300 ${isHovered ? 'scale-125 -translate-y-1' : 'scale-100'}`}>
-                  {/* 원래의 로즈 컬러 스타 마커 스타일로 복구 */}
-                  <svg width="28" height="34" viewBox="0 0 34 42" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]">
-                    <path d="M17 0C7.61116 0 0 7.61116 0 17C0 27.502 14.5447 40.5055 16.1477 41.687C16.4253 41.8906 16.7577 42 17 42C17.2423 42 17.5747 41.8906 17.8523 41.687C19.4553 40.5055 34 27.502 34 17C34 7.61116 26.3888 0 17 0Z" fill="#F43F5E"/>
-                    {votedPlaceIds.includes(place.placeId) ? (
+                  {/* 선택된 경우 로즈 컬러, 미선택 시 주황색 적용 */}
+                  <svg 
+                    width="28" 
+                    height="34" 
+                    viewBox="0 0 34 42" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className={`drop-shadow-sm ${isVoted ? 'drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]' : 'drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]'}`}
+                  >
+                    <path 
+                      d="M17 0C7.61116 0 0 7.61116 0 17C0 27.502 14.5447 40.5055 16.1477 41.687C16.4253 41.8906 16.7577 42 17 42C17.2423 42 17.5747 41.8906 17.8523 41.687C19.4553 40.5055 34 27.502 34 17C34 7.61116 26.3888 0 17 0Z" 
+                      fill={isVoted ? "#F43F5E" : "#F97316"}
+                    />
+                    {isVoted ? (
                       <path d="M11 18.5L15 22.5L23 14.5" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
                     ) : (
                       <path d="M17 11L18.8541 14.7578L23 15.3647L20 18.2853L20.7082 22.4102L17 20.4611L13.2918 22.4102L14 18.2853L11 15.3647L15.1459 14.7578L17 11Z" fill="white"/>
