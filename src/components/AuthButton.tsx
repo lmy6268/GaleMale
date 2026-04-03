@@ -3,7 +3,7 @@
 import { signIn, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Edit3, Check, X } from 'lucide-react';
+import { Edit3, Check, X, ArrowRight } from 'lucide-react';
 
 export function AuthButton() {
   const { data: session, status } = useSession();
@@ -143,13 +143,13 @@ export function AuthButton() {
             <button
               onClick={handleSetNickname}
               disabled={nicknameLoading}
-              className="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-rose-600 text-white text-sm font-bold transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+              className="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-bold transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
             >
               {nicknameLoading ? '...' : '등록'}
             </button>
           </div>
           {nicknameError && (
-            <p className="text-red-400 text-xs mt-2">{nicknameError}</p>
+            <p className="text-orange-400 text-xs mt-2">{nicknameError}</p>
           )}
         </div>
       </div>
@@ -192,7 +192,7 @@ export function AuthButton() {
                 </div>
               </div>
               {editError && (
-                <p className="text-[10px] text-rose-500 font-medium">{editError}</p>
+                <p className="text-[10px] text-orange-500 font-medium">{editError}</p>
               )}
             </div>
           ) : (
@@ -203,21 +203,19 @@ export function AuthButton() {
                 className="group cursor-pointer mx-1 border-b border-dashed border-slate-300 hover:border-orange-400 transition-all pb-0.5 inline-flex items-center gap-1.5"
                 title="닉네임 수정"
               >
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-500 font-bold whitespace-nowrap">{nickname}</span>님 반갑습니다.
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600 font-bold whitespace-nowrap">{nickname}</span>
                 <Edit3 className="w-3.5 h-3.5 text-slate-400 group-hover:text-orange-500 transition-all group-hover:scale-110" />
-              </span>
+              </span>님 반갑습니다.
             </p>
           )}
         </div>
 
         <Link 
           href="/room/create"
-          className="group relative flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-orange-500 to-rose-600 px-6 py-4 text-lg font-bold text-white transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_40px_-5px_rgba(244,63,94,0.5)] active:scale-[0.98]"
+          className="group relative flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 text-lg font-bold text-white transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_40px_-5px_rgba(249,115,22,0.5)] active:scale-[0.98]"
         >
           <span>새 투표 방 만들기</span>
-          <svg className="w-6 h-6 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-          </svg>
+          <ArrowRight className="w-6 h-6 transition-transform duration-300 group-hover:translate-x-1" />
         </Link>
 
         <Link

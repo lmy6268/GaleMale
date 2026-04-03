@@ -5,7 +5,17 @@ import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import MapComponent, { MapPlace } from '@/components/MapComponent';
-import { ChevronLeft, Home, Calendar, Users, ExternalLink, Trash2, Edit3, Share2 } from 'lucide-react';
+import { 
+  Users, 
+  MapPin, 
+  ChevronLeft, 
+  Trash2,
+  Calendar,
+  Share2,
+  Home,
+  Edit3,
+  ExternalLink
+} from 'lucide-react';
 
 interface KakaoPlace {
   id: string;
@@ -380,8 +390,8 @@ export default function RoomPage() {
         <div className="w-full max-w-sm">
           <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl shadow-slate-200/50 text-center">
             <div className="flex justify-center">
-              <div className="w-16 h-16 bg-gradient-to-tr from-orange-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-3 text-white">
-                <Users className="w-10 h-10" />
+              <div className="w-16 h-16 bg-gradient-to-tr from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-3 text-white">
+                <MapPin className="w-10 h-10" />
               </div>
             </div>
             
@@ -406,13 +416,13 @@ export default function RoomPage() {
                       className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-base focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all text-center font-bold"
                     />
                     {nicknameError && (
-                      <p className="text-rose-500 text-xs font-semibold text-center">{nicknameError}</p>
+                      <p className="text-orange-500 text-xs font-semibold text-center">{nicknameError}</p>
                     )}
                   </div>
                   <button
                     onClick={handleJoinWithNickname}
                     disabled={isJoining}
-                    className="w-full bg-gradient-to-r from-orange-500 to-rose-600 py-4 rounded-2xl text-white font-bold text-lg shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 py-4 rounded-2xl text-white font-bold text-lg shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
                   >
                     {isJoining ? '등록 중...' : '시작하기'}
                   </button>
@@ -566,14 +576,14 @@ export default function RoomPage() {
             {isCreator && (
               <div className="flex gap-2 ml-1 border-l border-slate-200 pl-3">
                 {!isClosed ? (
-                  <button onClick={() => handleUpdateRoom({ isClosed: true })} className="p-1 px-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all text-[10px] font-bold">강제 마감</button>
+                  <button onClick={() => handleUpdateRoom({ isClosed: true })} className="p-1 px-2 rounded-lg text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all text-[10px] font-bold">강제 마감</button>
                 ) : (
                   <button onClick={() => handleUpdateRoom({ isClosed: false })} className="p-1 px-2 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all text-[10px] font-bold">다시 열기</button>
                 )}
-                <button onClick={handleDeleteRoom} className="p-1 px-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all text-[10px] font-bold">투표 삭제</button>
+                <button onClick={handleDeleteRoom} className="p-1 px-2 rounded-lg text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all text-[10px] font-bold">투표 삭제</button>
               </div>
             )}
-            {isClosed && <span className="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-400 text-[10px] font-black uppercase">마감 완료</span>}
+            {isClosed && <span className="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 text-[10px] font-black uppercase">마감 완료</span>}
           </div>
           
           {isEditingDeadline && (
@@ -716,7 +726,7 @@ export default function RoomPage() {
                           {isCreator && (
                             <button 
                               onClick={(e) => { e.stopPropagation(); handleDeleteOption(option.placeId); }}
-                              className="p-1.5 rounded-lg bg-slate-50 text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                              className="p-1.5 rounded-lg bg-slate-50 text-slate-300 hover:text-orange-500 hover:bg-orange-50 transition-all"
                               title="장소 삭제"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -727,8 +737,8 @@ export default function RoomPage() {
                       <p className="text-[12px] text-slate-500 mb-4 truncate">{option.address}</p>
                       <div className="flex items-center gap-3">
                         <div className="text-2xl font-black text-orange-500">{option.voteCount}<span className="text-[10px] text-slate-600 font-bold ml-1">표</span></div>
-                        <div className="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-orange-400 to-rose-500 shadow-[0_0_10px_rgba(249,115,22,0.3)]" style={{ width: `${(option.voteCount / totalVotes) * 100}%` }}></div>
+                        <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                          <div className="h-full bg-gradient-to-r from-orange-400 to-orange-600 shadow-[0_0_10px_rgba(249,115,22,0.3)]" style={{ width: `${(option.voteCount / totalVotes) * 100}%` }}></div>
                         </div>
                         {isActuallyVoted && <div className="text-[10px] font-black text-emerald-500 animate-pulse">MY VOTE</div>}
                       </div>

@@ -384,7 +384,7 @@ export default function CreateRoomPage() {
             <div 
               onClick={() => setAllowAddOptions(!allowAddOptions)}
               className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                allowAddOptions ? 'bg-rose-50 border-rose-300 text-rose-600' : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300'
+                allowAddOptions ? 'bg-orange-50 border-orange-300 text-orange-600' : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300'
               }`}
             >
               <div className="space-y-0.5">
@@ -392,7 +392,7 @@ export default function CreateRoomPage() {
                 <p className="text-[10px] opacity-70">참여자가 후보 직접 추가 가능</p>
               </div>
               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                allowAddOptions ? 'border-rose-500 bg-rose-500' : 'border-slate-300'
+                allowAddOptions ? 'border-orange-500 bg-orange-500' : 'border-slate-300'
               }`}>
                 {allowAddOptions && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
               </div>
@@ -403,7 +403,7 @@ export default function CreateRoomPage() {
             <div className="flex justify-between items-end ml-1">
               <label className="text-sm font-bold text-slate-700">투표 마감 일시 (이후엔 투표 종료)</label>
               {deadlineDate && deadlineTime && (
-                <div className="text-[11px] font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-100 animate-in fade-in slide-in-from-right-1">
+                <div className="text-[11px] font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-100 animate-in fade-in slide-in-from-right-1">
                   {(() => {
                     const now = new Date();
                     const deadline = new Date(`${deadlineDate}T${deadlineTime}`);

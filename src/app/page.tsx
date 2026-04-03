@@ -1,4 +1,5 @@
 import { AuthButton } from '@/components/AuthButton';
+import { MapPin } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -6,21 +7,27 @@ export default function Home() {
       {/* Background Micro-animations & Aesthetics (Lighter tones) */}
       <div className="absolute top-0 flex w-full justify-center rotate-12 opacity-40 blur-[120px] pointer-events-none">
         <div className="h-[400px] w-[300px] rounded-full bg-orange-200 mix-blend-multiply animate-pulse"></div>
-        <div className="h-[300px] w-[400px] rounded-full bg-rose-200 mix-blend-multiply animate-pulse delay-700"></div>
+        <div className="h-[300px] w-[400px] rounded-full bg-orange-100 mix-blend-multiply animate-pulse delay-700"></div>
       </div>
 
       <div className="relative text-center max-w-lg w-full flex flex-col items-center gap-10 z-10 p-8 rounded-3xl bg-white border border-slate-200 shadow-2xl shadow-slate-200/50">
-        <div className="space-y-5">
-          <h1 className="text-5xl md:text-6xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-600 leading-tight">
+        <div className="space-y-6 flex flex-col items-center">
+          <div className="flex justify-center">
+            <div className="w-16 h-16 bg-gradient-to-tr from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-3 text-white">
+              <MapPin className="w-10 h-10" />
+            </div>
+          </div>
+          <h1 className="text-5xl md:text-6xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600 leading-tight">
             갈래 말래?
           </h1>
-          <p className="text-slate-500 text-[1.15rem] leading-relaxed font-medium">
-            친구들과 함께 복잡한 과정 없이<br/>약속 장소를 결정하세요.
-          </p>
         </div>
 
-        <div className="w-full">
+        <div className="w-full flex flex-col items-center gap-8">
           <AuthButton />
+          
+          <p className="text-slate-500 text-[1.05rem] leading-relaxed font-medium">
+            친구들과 함께 복잡한 과정 없이<br/>약속 장소를 결정하세요.
+          </p>
         </div>
       </div>
     </main>
