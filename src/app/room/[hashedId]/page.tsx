@@ -848,10 +848,10 @@ export default function RoomPage() {
 
           <button 
             onClick={() => { navigator.clipboard.writeText(window.location.href); alert('복사되었습니다!'); }} 
-            className="w-full py-5 rounded-[2rem] border border-slate-200 bg-white text-slate-500 font-black text-sm hover:text-slate-900 hover:border-orange-200 hover:bg-orange-50 transition-all flex items-center justify-center gap-3 active:scale-95 shadow-sm hover:shadow-md group"
+            className="w-full py-5 rounded-[2rem] border border-slate-200 bg-white text-slate-500 font-black text-sm hover:text-slate-900 hover:border-orange-200 hover:bg-orange-50 transition-all flex items-center justify-center gap-3 active:scale-95 shadow-sm hover:shadow-md group select-none"
           >
-            <Share2 className="w-5 h-5 text-orange-500/50 group-hover:text-orange-500 transition-colors" />
-            초대 링크 복사하기
+            <Share2 className="w-5 h-5 text-orange-500/50 group-hover:text-orange-500 transition-colors pointer-events-none" />
+            <span className="pointer-events-none">초대 링크 복사하기</span>
           </button>
         </div>
         {/* 참여자 현황 모달 */}
