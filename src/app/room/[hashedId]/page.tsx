@@ -379,17 +379,19 @@ export default function RoomPage() {
 
         <div className="w-full max-w-sm">
           <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl shadow-slate-200/50 text-center">
-            <div className="w-20 h-20 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Users className="w-10 h-10 text-orange-500" />
+            <div className="flex justify-center">
+              <div className="w-16 h-16 bg-gradient-to-tr from-orange-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-3 text-white">
+                <Users className="w-10 h-10" />
+              </div>
             </div>
             
             {status === 'authenticated' ? (
               <>
-                <h1 className="text-2xl font-bold text-slate-900 mb-2">반가워요! 🎉</h1>
-                <p className="text-slate-500 text-sm mb-8 leading-relaxed">
-                  투표에서 사용할 이름을 정해주세요.<br />
-                  언제든 나중에 수정할 수 있어요.
-                </p>
+                <h1 className="text-2xl font-bold text-slate-900 mb-2">반가워요</h1>
+              <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+                투표에서 사용할 이름을 정성껏 적어주세요.<br />
+                나중에 언제든 수정할 수 있습니다.
+              </p>
                 <div className="space-y-4">
                   <div className="flex flex-col gap-2">
                     <input

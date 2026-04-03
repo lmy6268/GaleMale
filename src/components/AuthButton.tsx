@@ -124,7 +124,7 @@ export function AuthButton() {
     return (
       <div className="flex flex-col gap-4 w-full items-center">
         <div className="w-full p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <p className="text-slate-900 text-sm font-bold mb-1">환영합니다! 🎉</p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">반가워요</h1>
           <p className="text-slate-500 text-xs mb-4">투표에서 사용할 이름을 등록해주세요.</p>
 
           <div className="flex gap-2">
@@ -203,10 +203,9 @@ export function AuthButton() {
                 className="group cursor-pointer mx-1 border-b border-dashed border-slate-300 hover:border-orange-400 transition-all pb-0.5 inline-flex items-center gap-1.5"
                 title="닉네임 수정"
               >
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-500 font-bold whitespace-nowrap">{nickname}</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-500 font-bold whitespace-nowrap">{nickname}</span>님 반갑습니다.
                 <Edit3 className="w-3.5 h-3.5 text-slate-400 group-hover:text-orange-500 transition-all group-hover:scale-110" />
               </span>
-              님 👋
             </p>
           )}
         </div>
