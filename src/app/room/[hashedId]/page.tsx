@@ -40,6 +40,8 @@ interface RoomData {
   allowAddOptions: boolean;
   options: PlaceOption[];
   creatorUserId: string;
+  creatorNickname?: string;
+  creatorImage?: string | null;
   participantCount?: number;
 }
 
@@ -60,6 +62,8 @@ export default function RoomPage() {
   const [showParticipants, setShowParticipants] = useState(false);
   const [participants, setParticipants] = useState<any[]>([]);
   const [loadingParticipants, setLoadingParticipants] = useState(false);
+  
+  const [loginNickname, setLoginNickname] = useState('');
   
   const [mapTargetCenter, setMapTargetCenter] = useState<{ lat: number, lng: number } | undefined>(undefined);
   const [hoveredPlaceId, setHoveredPlaceId] = useState<string | null>(null);
@@ -108,8 +112,21 @@ export default function RoomPage() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      fetchRoomData();
-      fetchVoteStatus();
+      const customNick = localStorage.getItem('pendingNickname');
+      if (customNick) {
+        fetch('/api/user/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nickname: customNick }),
+        }).then(() => {
+          localStorage.removeItem('pendingNickname');
+          fetchRoomData();
+          fetchVoteStatus();
+        });
+      } else {
+        fetchRoomData();
+        fetchVoteStatus();
+      }
       setShowLoginPrompt(false);
     } else if (status === 'unauthenticated') {
       setLoading(false);
@@ -301,6 +318,9 @@ export default function RoomPage() {
   const isModified = JSON.stringify([...tempSelectedIds].sort()) !== JSON.stringify([...votedPlaceIds].sort());
 
   const handleSignIn = () => {
+    if (loginNickname.trim()) {
+      localStorage.setItem('pendingNickname', loginNickname.trim());
+    }
     signIn('kakao', { callbackUrl: window.location.href });
   };
 
@@ -328,11 +348,23 @@ export default function RoomPage() {
               <p className="text-slate-400 font-medium tracking-tight">초대받은 투표 방에 오신 것을 환영합니다!</p>
             </div>
 
-            <div className="py-6 px-4 rounded-2xl bg-white/5 border border-white/5 space-y-3">
+            <div className="py-6 px-4 rounded-2xl bg-white/5 border border-white/5 space-y-4">
               <p className="text-sm text-slate-300 leading-relaxed font-medium">
                 프라이빗 투표에 참여하고 장소를 추천하려면<br/>
                 <span className="text-orange-400 font-bold underline underline-offset-4 decoration-orange-500/30">카카오 로그인</span>이 필요합니다.
               </p>
+              
+              <div className="pt-2 text-left space-y-1">
+                <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-1">투표에 사용할 닉네임 (선택)</label>
+                <input 
+                  type="text" 
+                  autoComplete="off"
+                  value={loginNickname}
+                  onChange={(e) => setLoginNickname(e.target.value)}
+                  placeholder="미입력 시 카카오톡 이름 사용" 
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-orange-500/50 text-sm text-white placeholder-slate-600 transition-colors"
+                />
+              </div>
             </div>
 
             <button 
@@ -398,6 +430,17 @@ export default function RoomPage() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                   </button>
                 )}
+              </div>
+            )}
+            {/* 방장 정보 표시 */}
+            {room.creatorNickname && (
+              <div className="flex items-center gap-2 mt-1 px-3 py-1 bg-white/5 border border-white/5 rounded-full backdrop-blur-sm">
+                {room.creatorImage ? (
+                  <img src={room.creatorImage} alt="creator" className="w-4 h-4 rounded-full border border-white/10" />
+                ) : (
+                  <span className="text-[10px]">👑</span>
+                )}
+                <span className="text-[10px] text-slate-400 font-bold tracking-widest">{room.creatorNickname} 님의 투표방</span>
               </div>
             )}
           </div>
@@ -679,28 +722,36 @@ export default function RoomPage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {participants.map((p, idx) => (
-                      <div key={p.kakaoUserId || idx} className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-3">
-                        <div className="flex items-center gap-3">
-                          {p.image ? (
-                            <img src={p.image} alt={p.nickname} className="w-10 h-10 rounded-full border-2 border-orange-500/30" />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-slate-700 to-slate-800 flex items-center justify-center text-lg shadow-inner border border-white/10">👤</div>
-                          )}
-                          <div>
-                            <p className="text-sm font-black text-white">{p.nickname}</p>
-                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{p.places.length}개 선택됨</p>
+                    {participants.map((p, idx) => {
+                      const isMe = sessionUser && (sessionUser.id === p.kakaoUserId);
+                      return (
+                        <div key={p.kakaoUserId || idx} className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              {p.image ? (
+                                <img src={p.image} alt={p.nickname} className="w-10 h-10 rounded-full border-2 border-orange-500/30" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-slate-700 to-slate-800 flex items-center justify-center text-lg shadow-inner border border-white/10">👤</div>
+                              )}
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-black text-white">{p.nickname}</p>
+                                </div>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{p.places.length}개 선택됨</p>
+                              </div>
+                            </div>
+                            {isMe && <span className="px-2 py-0.5 rounded-md bg-white/5 text-slate-500 text-[8px] font-black uppercase tracking-tighter border border-white/5">나</span>}
+                          </div>
+                          <div className="flex flex-wrap gap-1.5 ml-1 pt-1 border-t border-white/5 mt-2 pt-3">
+                            {p.places.map((placeName: string, i: number) => (
+                              <span key={i} className="px-2 py-1 rounded-lg bg-orange-500/10 text-orange-400 text-[10px] font-black border border-orange-500/20">
+                                {placeName}
+                              </span>
+                            ))}
                           </div>
                         </div>
-                        <div className="flex flex-wrap gap-1.5 ml-1 pt-1 border-t border-white/5 mt-2 pt-3">
-                          {p.places.map((placeName: string, i: number) => (
-                            <span key={i} className="px-2 py-1 rounded-lg bg-orange-500/10 text-orange-400 text-[10px] font-black border border-orange-500/20">
-                              {placeName}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

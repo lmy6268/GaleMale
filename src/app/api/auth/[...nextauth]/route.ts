@@ -12,7 +12,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       if (account?.provider === 'kakao') {
         try {
           await connectToDatabase();
@@ -21,12 +21,12 @@ export const authOptions: NextAuthOptions = {
           const image = user.image || "";
 
           // 사용자 정보 업설트 (Update or Insert)
+          // 닉네임은 최초 생성(insert)시에만 설정되도록 하고, 이미지는 매번 업데이트합니다.
           await User.findOneAndUpdate(
             { kakaoUserId: kakaoId },
             { 
-              kakaoUserId: kakaoId, 
-              nickname, 
-              image 
+              $setOnInsert: { nickname }, 
+              $set: { image } 
             },
             { upsert: true, new: true }
           );
@@ -44,7 +44,7 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        // @ts-ignore
+        // @ts-expect-error
         session.user.id = token.id as string;
       }
       return session;
