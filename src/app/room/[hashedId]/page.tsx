@@ -125,8 +125,6 @@ export default function RoomPage() {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [isEditingDeadline, setIsEditingDeadline] = useState(false);
-  const [newDeadlineDate, setNewDeadlineDate] = useState('');
-  const [newDeadlineTime, setNewDeadlineTime] = useState('');
   
   const [isAddingOption, setIsAddingOption] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -341,13 +339,6 @@ export default function RoomPage() {
   };
 
   const handleOpenDeadlineEditor = () => {
-    if (room?.deadline) {
-      const d = new Date(room.deadline);
-      const dateStr = d.toISOString().split('T')[0];
-      const timeStr = d.toTimeString().slice(0, 5);
-      setNewDeadlineDate(dateStr);
-      setNewDeadlineTime(timeStr);
-    }
     setIsEditingDeadline(true);
   };
 
@@ -501,13 +492,20 @@ export default function RoomPage() {
         
         {/* 헤더 */}
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 text-orange-400 text-[10px] font-black tracking-widest uppercase border border-orange-500/20">
-            <span className="relative flex h-2 w-2">
-              <span className={`${!isClosed ? 'animate-ping' : ''} absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75`}></span>
-              <span className={`relative inline-flex rounded-full h-2 w-2 ${!isClosed ? 'bg-orange-500' : 'bg-slate-500'}`}></span>
-            </span>
-            {isClosed ? '투표 종료됨' : '실시간 투표 진행 중'}
-          </div>
+          {isClosed ? (
+            <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-100 animate-in slide-in-from-top-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+              <span className="text-[10px] font-black text-rose-600 uppercase tracking-wider">투표 종료됨</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 text-orange-400 text-[10px] font-black tracking-widest uppercase border border-orange-500/20">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+              </span>
+              실시간 투표 진행 중
+            </div>
+          )}
 
           
           <div className="flex flex-col items-center gap-2">
@@ -543,13 +541,15 @@ export default function RoomPage() {
                   <span className="text-[10px] text-slate-500 font-bold tracking-widest">{room.creatorNickname} 님의 투표방</span>
                 </div>
                 
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-black border border-blue-500/20 shadow-sm transition-all hover:bg-blue-500/20">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
-                  </span>
-                  {timeRemaining}
-                </div>
+                {!isClosed && (
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-black border border-blue-500/20 shadow-sm transition-all hover:bg-blue-500/20">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
+                    </span>
+                    {timeRemaining}
+                  </div>
+                )}
 
                 {room.allowMultipleVotes && (
                   <div className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-500 text-[10px] font-black border border-orange-500/20 shadow-sm transition-all hover:bg-orange-500/20">
@@ -580,19 +580,17 @@ export default function RoomPage() {
             
             {isCreator && (
               <div className="flex items-center gap-1 ml-1">
-                {!isClosed && (
-                  <div className="relative group/tooltip">
-                    <button 
-                      onClick={handleOpenDeadlineEditor} 
-                      className="p-2 rounded-xl text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all group"
-                    >
-                      <Clock className="w-4 h-4" />
-                    </button>
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[100] shadow-lg">
-                      시간 변경
-                    </div>
+                <div className="relative group/tooltip">
+                  <button 
+                    onClick={handleOpenDeadlineEditor} 
+                    className="p-2 rounded-xl text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all group"
+                  >
+                    <Clock className="w-4 h-4" />
+                  </button>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[100] shadow-lg">
+                    시간 변경 및 투표 재개
                   </div>
-                )}
+                </div>
                 
                 {!isClosed ? (
                   <div className="relative group/tooltip">
@@ -633,21 +631,48 @@ export default function RoomPage() {
                 </div>
               </div>
             )}
-            {isClosed && !isCreator && <span className="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 text-[10px] font-black uppercase">마감 완료</span>}
           </div>
           
           {isEditingDeadline && (
-            <div className="max-w-sm mx-auto p-4 rounded-2xl bg-white border border-slate-200 shadow-xl space-y-3 animate-in fade-in slide-in-from-top-2">
-               <div className="flex flex-col sm:flex-row gap-2">
-                 <input type="date" value={newDeadlineDate} onChange={(e) => setNewDeadlineDate(e.target.value)} className="flex-[2] bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-sm outline-none focus:border-orange-300" />
-                 <input type="time" value={newDeadlineTime} onChange={(e) => setNewDeadlineTime(e.target.value)} className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-sm outline-none focus:border-orange-300" />
-               </div>
-               <button 
-                onClick={() => handleUpdateRoom({ deadline: new Date(`${newDeadlineDate}T${newDeadlineTime}`).toISOString() })}
-                className="w-full py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-orange-500/20"
-               >
-                 마감 기한 변경
-               </button>
+            <div className="mt-4 p-4 bg-orange-50 border border-orange-100 rounded-2xl animate-in zoom-in-95 duration-200">
+              <div className="flex flex-col gap-3">
+                <label className="text-xs font-bold text-orange-600 ml-1">마감 기한 설정</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="datetime-local" 
+                    id="deadline-input"
+                    className="flex-1 px-4 py-2.5 rounded-xl border-2 border-orange-200 focus:border-orange-500 focus:outline-none text-sm font-medium bg-white selection:bg-orange-500/30"
+                    defaultValue={new Date(new Date(room.deadline).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 16)}
+                    min={new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 16)}
+                  />
+                  <button 
+                    onClick={() => {
+                      const input = document.getElementById('deadline-input') as HTMLInputElement;
+                      const newDeadline = new Date(input.value);
+                      if (newDeadline <= new Date()) {
+                        alert('마감 기한은 현재 시간 이후로 설정해주세요!');
+                        return;
+                      }
+                      // 시간을 미래로 설정하면 자동으로 투표 재개(isClosed: false) 상태로 변경
+                      handleUpdateRoom({ 
+                        deadline: newDeadline.toISOString(),
+                        isClosed: false 
+                      });
+                      setIsEditingDeadline(false);
+                    }}
+                    className="flex-shrink-0 px-5 py-2.5 bg-orange-500 text-white rounded-xl font-black text-xs sm:text-sm hover:bg-orange-600 transition-all shadow-md active:scale-95 whitespace-nowrap"
+                  >
+                    저장 및 투표 재개
+                  </button>
+                  <button 
+                    onClick={() => setIsEditingDeadline(false)}
+                    className="flex-shrink-0 px-4 py-2.5 bg-white text-slate-400 rounded-xl font-bold text-xs sm:text-sm border border-slate-200 hover:bg-slate-50 transition-all whitespace-nowrap"
+                  >
+                    취소
+                  </button>
+                </div>
+                <p className="text-[10px] text-orange-400 ml-1 font-medium">* 현재 시간 이후로 설정 시 투표가 자동으로 재개됩니다.</p>
+              </div>
             </div>
           )}
         </div>

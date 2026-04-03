@@ -170,20 +170,20 @@ export default function MyRoomsPage() {
                       </div>
                     </div>
 
-                    <div className="flex flex-row md:flex-col gap-3 justify-end items-center">
+                    <div className="flex flex-row md:flex-col gap-3 justify-end items-stretch">
                       <Link
                         href={`/room/${room.hashedId}`}
-                        className="flex-1 w-full md:w-32 flex items-center justify-center gap-2 bg-slate-900 py-3 rounded-2xl text-white font-bold hover:bg-orange-600 transition-all shadow-md active:scale-95 group"
+                        className="flex-1 w-full md:w-32 flex items-center justify-center gap-2 bg-orange-600 py-3 rounded-2xl text-white font-bold hover:bg-orange-500 transition-all shadow-md active:scale-95 group"
                       >
-                        <span>입장하기</span>
+                        <span className="text-[13px]">입장하기</span>
                         <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </Link>
                       <button
                         onClick={() => handleDelete(room.hashedId)}
-                        className="p-3 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 hover:bg-rose-500 hover:text-white transition-all shadow-sm active:scale-95"
-                        title="방 삭제"
+                        className="flex-1 w-full md:w-32 flex items-center justify-center gap-2 bg-rose-50 text-rose-500 border border-rose-100 py-3 rounded-2xl hover:bg-rose-500 hover:text-white transition-all shadow-sm active:scale-95"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-4 h-4" />
+                        <span className="text-[13px] font-bold">삭제하기</span>
                       </button>
                     </div>
                   </div>
