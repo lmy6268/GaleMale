@@ -63,13 +63,10 @@ export default function MapComponent({
         };
         setMyPos(newPos);
         
-        // 지도가 처음 로드되었을 때만 내 위치를 중심으로 설정
-        // [수정] 외부 목표 센터(1번 가게 등)가 없을 때만 내 위치로 초기 이동
-        if (!isInitialCentered && map && !externalLat) {
-          map.setCenter(new window.kakao.maps.LatLng(newPos.lat, newPos.lng));
-          setIsInitialCentered(true);
-        } else if (!isInitialCentered && map && externalLat) {
-          // 외부 센터가 이미 있다면 GPS 초기 이동은 건너뛰고 상태만 초기화 완료로 표시
+        // [결단] 투표방에서는 사용자의 GPS 위치로 지도를 '자동 이동' 시키지 않습니다.
+        // 지도는 항상 후보지(externalLat) 혹은 1번 장소를 우선해서 보여주며,
+        // 내 위치는 우측 하단의 '내 위치 버튼'을 눌렀을 때만 명시적으로 이동합니다.
+        if (!isInitialCentered && map) {
           setIsInitialCentered(true);
         }
       },
@@ -115,6 +112,28 @@ export default function MapComponent({
     if (error) console.error('Kakao Map Load Error:', error);
   }, [error]);
 
+  // 최초 1회만 모든 후보지가 한눈에 들어오도록 지도의 영역(Bounds) 설정
+  const isBoundsInitialSet = useRef(false);
+
+  useEffect(() => {
+    if (!map || places.length === 0 || isBoundsInitialSet.current) return;
+
+    // 후보지들이 모두 포함되도록 영역 계산
+    const bounds = new window.kakao.maps.LatLngBounds();
+    places.forEach(p => {
+      bounds.extend(new window.kakao.maps.LatLng(Number(p.y), Number(p.x)));
+    });
+
+    // 지도가 충분히 준비된 후 영역 맞춤 (약간의 여백 포함)
+    map.setBounds(bounds, 80); // 80px 여백
+    isBoundsInitialSet.current = true;
+    
+    // 이펙트 내 동기적 상태 업데이트 대신 비동기적(setTimeout)으로 처리하여 린트 경고 해결
+    setTimeout(() => {
+      setIsInitialCentered(true);
+    }, 0);
+  }, [map, places]);
+
   // 이전에 setBounds를 실행했던 장소들의 ID를 저장 (REF 사용하여 무한 루프/리렌더링 방지)
   const lastBoundsPlacesRef = useRef("");
 
@@ -124,9 +143,6 @@ export default function MapComponent({
     // 장소 리스트가 실제로 변했는지 확인 (ID 조합으로 비교)
     const currentPlacesStr = places.map(p => p.placeId).sort().join(",");
     if (currentPlacesStr === lastBoundsPlacesRef.current) return;
-
-    // [기능 제거] 장소 추가 시 지도가 멋대로 움직이거나 줌배율이 바뀌지 않도록 자동 이동 로직을 삭제하였습니다.
-    // 사용자가 명시적으로 해당 장소로 이동하기를 원할 때(Hover/Focus)만 지도가 반응합니다.
     
     lastBoundsPlacesRef.current = currentPlacesStr;
   }, [map, places]);

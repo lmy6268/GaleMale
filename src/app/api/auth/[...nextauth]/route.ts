@@ -1,6 +1,9 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import KakaoProvider from "next-auth/providers/kakao";
 
+import connectToDatabase from "@/lib/mongodb";
+import User from "@/models/User";
+
 export const authOptions: NextAuthOptions = {
   providers: [
     KakaoProvider({
@@ -9,11 +12,32 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === 'kakao') {
+        try {
+          await connectToDatabase();
+          const kakaoId = user.id;
+          const nickname = user.name || "익명";
+          const image = user.image || "";
+
+          // 사용자 정보 업설트 (Update or Insert)
+          await User.findOneAndUpdate(
+            { kakaoUserId: kakaoId },
+            { 
+              kakaoUserId: kakaoId, 
+              nickname, 
+              image 
+            },
+            { upsert: true, new: true }
+          );
+        } catch (err) {
+          console.error("User sync error:", err);
+        }
+      }
+      return true;
+    },
     async jwt({ token, user, profile }) {
       if (user) {
-        console.log("== KAKAO LOGIN USER INFO ==");
-        console.log("User:", user);
-        console.log("Profile:", profile);
         token.id = user.id;
       }
       return token;
