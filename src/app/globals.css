@@ -1,47 +1,57 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --background: #f8fafc;
-  --foreground: #020617;
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", sans-serif;
+    
+  --color-primary-orange: #f97316;
+  --color-secondary-orange: #ea580c;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-/* 라이트 모드 테마 고정을 위해 다크 모드 속성 일시 비활성화 */
-/*
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    @apply text-slate-900 bg-slate-50 antialiased italic;
+    /* v4에서는 tracking과 leading을 개별 클래스로 지정하는 것이 안전합니다. */
   }
 }
-*/
 
+/* 글로벌 타이포그래피 정밀 튜팅 (Brunch 아티클 가이드) */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-  cursor: default;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+  letter-spacing: -0.03em !important;
+  line-height: 1.6 !important;
+  font-style: normal !important;
 }
 
-input, textarea {
-  cursor: text;
-  user-select: auto;
-  -webkit-user-select: auto;
-  -moz-user-select: auto;
-  -ms-user-select: auto;
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.04em !important;
+  line-height: 1.2 !important;
 }
 
-a, button {
-  cursor: pointer;
+@layer components {
+  .btn-orange {
+    @apply bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold px-6 py-4 rounded-2xl shadow-lg active:scale-[0.98] transition-all;
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
 }

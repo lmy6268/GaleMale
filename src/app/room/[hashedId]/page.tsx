@@ -14,7 +14,10 @@ import {
   Share2,
   Home,
   Edit3,
-  ExternalLink
+  ExternalLink,
+  Clock,
+  Lock,
+  Unlock
 } from 'lucide-react';
 
 interface KakaoPlace {
@@ -547,43 +550,70 @@ export default function RoomPage() {
                 </span>
               </div>
               {!isClosed && (
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[10px] font-black border border-blue-500/20">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
-                  </span>
-                  {(() => {
-                    const diff = new Date(room.deadline).getTime() - new Date().getTime();
-                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    if (days > 0) return `${days}일 ${hours}시간 남음`;
-                    if (hours > 0) return `${hours}시간 ${mins}분 남음`;
-                    return `${mins}분 남음`;
-                  })()}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[10px] font-black border border-blue-500/20">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
+                    </span>
+                    {(() => {
+                      const diff = new Date(room.deadline).getTime() - new Date().getTime();
+                      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                      if (days > 0) return `${days}일 ${hours}시간 남음`;
+                      if (hours > 0) return `${hours}시간 ${mins}분 남음`;
+                      return `${mins}분 남음`;
+                    })()}
+                  </div>
+                  {room.allowMultipleVotes && (
+                    <div className="px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-500 text-[10px] font-black border border-orange-500/20">
+                      중복 투표 가능
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-            {isCreator && !isClosed && (
-              <button 
-                onClick={handleOpenDeadlineEditor} 
-                className="p-1 px-2 rounded-lg text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all text-[10px] font-bold"
-              >
-                시간 변경
-              </button>
-            )}
-            
             {isCreator && (
-              <div className="flex gap-2 ml-1 border-l border-slate-200 pl-3">
-                {!isClosed ? (
-                  <button onClick={() => handleUpdateRoom({ isClosed: true })} className="p-1 px-2 rounded-lg text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all text-[10px] font-bold">강제 마감</button>
-                ) : (
-                  <button onClick={() => handleUpdateRoom({ isClosed: false })} className="p-1 px-2 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all text-[10px] font-bold">다시 열기</button>
+              <div className="flex items-center gap-1.5 ml-1 border-l border-slate-200 pl-3">
+                {!isClosed && (
+                  <button 
+                    onClick={handleOpenDeadlineEditor} 
+                    className="p-2 rounded-xl text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all group"
+                    title="시간 변경"
+                  >
+                    <Clock className="w-4 h-4" />
+                  </button>
                 )}
-                <button onClick={handleDeleteRoom} className="p-1 px-2 rounded-lg text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all text-[10px] font-bold">투표 삭제</button>
+                
+                {!isClosed ? (
+                  <button 
+                    onClick={() => handleUpdateRoom({ isClosed: true })} 
+                    className="p-2 rounded-xl text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all group"
+                    title="강제 마감"
+                  >
+                    <Lock className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => handleUpdateRoom({ isClosed: false })} 
+                    className="p-2 rounded-xl text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all group"
+                    title="다시 열기"
+                  >
+                    <Unlock className="w-4 h-4" />
+                  </button>
+                )}
+                
+                <button 
+                  onClick={handleDeleteRoom} 
+                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all group"
+                  title="투표 삭제"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             )}
-            {isClosed && <span className="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 text-[10px] font-black uppercase">마감 완료</span>}
+            {isClosed && !isCreator && <span className="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 text-[10px] font-black uppercase">마감 완료</span>}
           </div>
           
           {isEditingDeadline && (
@@ -755,6 +785,16 @@ export default function RoomPage() {
 
         {/* 푸터 */}
         <div className="pt-12 flex flex-col gap-4 border-t border-slate-200">
+          {(isModified || (votedPlaceIds.length === 0 && tempSelectedIds.length > 0)) && (
+            <button
+              onClick={handleSaveVote}
+              disabled={isVoting || tempSelectedIds.length === 0}
+              className="w-full py-5 rounded-2xl bg-orange-500 text-white font-black text-lg shadow-xl shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:hover:scale-100 disabled:grayscale-[0.5] animate-in fade-in slide-in-from-top-2"
+            >
+              {isVoting ? "저장 중..." : (votedPlaceIds.length === 0 ? "투표하기" : "수정하기")}
+            </button>
+          )}
+
           <button 
             onClick={() => { navigator.clipboard.writeText(window.location.href); alert('복사되었습니다!'); }} 
             className="w-full py-5 rounded-[2rem] border border-slate-200 bg-white text-slate-500 font-black text-sm hover:text-slate-900 hover:border-orange-200 hover:bg-orange-50 transition-all flex items-center justify-center gap-3 active:scale-95 shadow-sm hover:shadow-md group"
@@ -763,22 +803,6 @@ export default function RoomPage() {
             초대 링크 복사하기
           </button>
         </div>
-
-        {/* 플로팅 바 */}
-        {isModified && (
-          <div className="fixed bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] sm:w-[calc(100%-3rem)] max-w-lg z-[100] animate-in slide-in-from-bottom-8 duration-500 font-sans">
-            <div className="p-3 sm:p-4 rounded-3xl sm:rounded-[2.5rem] bg-white/95 backdrop-blur-xl shadow-2xl border border-white flex items-center justify-between gap-2 sm:gap-4">
-              <div className="pl-2 sm:pl-4">
-                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">장소 선택됨</p>
-                <p className="text-base sm:text-lg font-black text-slate-900 leading-none">{tempSelectedIds.length}개 후보</p>
-              </div>
-              <div className="flex gap-1.5 sm:gap-2">
-                <button onClick={() => setTempSelectedIds(votedPlaceIds)} className="px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-slate-500 hover:bg-slate-100 transition-colors text-xs sm:text-sm">취소</button>
-                <button onClick={handleSaveVote} disabled={isVoting} className="px-5 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-slate-950 text-white font-black text-xs sm:text-sm shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 tracking-tighter whitespace-nowrap">{isVoting ? "저장 중..." : "투표 저장하기"}</button>
-              </div>
-            </div>
-          </div>
-        )}
         {/* 참여자 현황 모달 */}
         {showParticipants && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
