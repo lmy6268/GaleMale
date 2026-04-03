@@ -760,34 +760,48 @@ export default function RoomPage() {
           )}
           
           <div className="grid gap-4">
-            {room.options.map((option) => {
-              const isActive = tempSelectedIds.includes(option.placeId);
-              const isActuallyVoted = votedPlaceIds.includes(option.placeId);
-              const totalVotes = room.options.reduce((a, b) => a + b.voteCount, 0) || 1;
+            {(() => {
+              const maxVotes = Math.max(...room.options.map(o => o.voteCount));
+              return room.options.map((option) => {
+                const isActive = tempSelectedIds.includes(option.placeId);
+                const isActuallyVoted = votedPlaceIds.includes(option.placeId);
+                const isWinner = maxVotes > 0 && option.voteCount === maxVotes;
+                const totalVotes = room.options.reduce((a, b) => a + b.voteCount, 0) || 1;
 
-              return (
-                <div 
-                  key={option.placeId}
-                  onMouseEnter={() => {
-                    setHoveredPlaceId(option.placeId);
-                    setMapTargetCenter({ lat: Number(option.y), lng: Number(option.x) });
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredPlaceId(null);
-                    setMapTargetCenter(undefined);
-                  }}
-                  onClick={() => toggleSelection(option.placeId)}
-                  className={`p-6 rounded-[2.5rem] border transition-all duration-300 cursor-pointer group shadow-sm hover:shadow-xl ${
-                    isActive 
-                      ? 'bg-white border-emerald-500 shadow-[0_0_40px_-15px_rgba(16,185,129,0.2)] scale-[1.02]' 
-                      : 'bg-white border-slate-100 hover:border-orange-200 hover:translate-x-1'
-                  }`}
-                >
-                  <div className="flex justify-between items-start gap-5">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="font-extrabold text-xl text-slate-900 tracking-tight group-hover:text-orange-600 transition-colors uppercase">{option.name}</span>
-                        <div className="flex gap-1 items-center">
+                return (
+                  <div 
+                    key={option.placeId}
+                    onMouseEnter={() => {
+                      setHoveredPlaceId(option.placeId);
+                      setMapTargetCenter({ lat: Number(option.y), lng: Number(option.x) });
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredPlaceId(null);
+                      setMapTargetCenter(undefined);
+                    }}
+                    onClick={() => toggleSelection(option.placeId)}
+                    className={`p-6 rounded-[2.5rem] border transition-all duration-300 cursor-pointer group shadow-sm hover:shadow-xl relative overflow-hidden ${
+                      isWinner ? 'bg-gradient-to-br from-white to-orange-50/30' : 'bg-white'
+                    } ${
+                      isActive 
+                        ? 'border-emerald-500 shadow-[0_0_40px_-15px_rgba(16,185,129,0.2)] scale-[1.02]' 
+                        : isWinner 
+                          ? 'border-orange-200 shadow-[0_10px_30px_-10px_rgba(249,115,22,0.1)]'
+                          : 'border-slate-100 hover:border-orange-200 hover:translate-x-1'
+                    }`}
+                  >
+                    {isWinner && (
+                      <div className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 bg-orange-400/10 blur-3xl rounded-full" />
+                    )}
+                    
+                    <div className="flex justify-between items-start gap-5 relative z-10">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-1.5">
+                          <div className="flex items-center gap-2">
+                             {isWinner && <span className="text-xl animate-in zoom-in-50 duration-500 drop-shadow-md">👑</span>}
+                             <span className={`font-extrabold text-xl tracking-tight transition-colors uppercase select-none cursor-default ${isWinner ? 'text-orange-600' : 'text-slate-900 group-hover:text-orange-600'}`}>{option.name}</span>
+                          </div>
+                          <div className="flex gap-1 items-center">
                           {option.placeUrl && <a href={option.placeUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:text-slate-900 transition-all"><ExternalLink className="w-4 h-4" /></a>}
                           {isCreator && (
                             <button 
@@ -815,9 +829,10 @@ export default function RoomPage() {
                   </div>
                 </div>
               );
-            })}
-          </div>
+            });
+          })()}
         </div>
+      </div>
 
         {/* 푸터 */}
         <div className="pt-12 flex flex-col gap-4 border-t border-slate-200">
