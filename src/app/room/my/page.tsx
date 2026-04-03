@@ -175,7 +175,7 @@ export default function MyRoomsPage() {
                         href={`/room/${room.hashedId}`}
                         className="flex-1 w-full md:w-32 flex items-center justify-center gap-2 bg-orange-600 py-3 rounded-2xl text-white font-bold hover:bg-orange-500 transition-all shadow-md active:scale-95 group"
                       >
-                        <span className="text-[13px]">입장하기</span>
+                        <span className="text-[13px]">방 입장</span>
                         <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </Link>
                       <button
@@ -183,7 +183,7 @@ export default function MyRoomsPage() {
                         className="flex-1 w-full md:w-32 flex items-center justify-center gap-2 bg-rose-50 text-rose-500 border border-rose-100 py-3 rounded-2xl hover:bg-rose-500 hover:text-white transition-all shadow-sm active:scale-95"
                       >
                         <Trash2 className="w-4 h-4" />
-                        <span className="text-[13px] font-bold">삭제하기</span>
+                        <span className="text-[13px] font-bold">투표 삭제</span>
                       </button>
                     </div>
                   </div>
