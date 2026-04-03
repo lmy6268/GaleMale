@@ -494,13 +494,12 @@ export default function RoomPage() {
         <div className="text-center space-y-4">
           {isClosed ? (
             <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-100 animate-in slide-in-from-top-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+              <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
               <span className="text-[10px] font-black text-rose-600 uppercase tracking-wider">투표 종료됨</span>
             </div>
           ) : (
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 text-orange-400 text-[10px] font-black tracking-widest uppercase border border-orange-500/20">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
               </span>
               실시간 투표 진행 중
@@ -544,7 +543,6 @@ export default function RoomPage() {
                 {!isClosed && (
                   <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-black border border-blue-500/20 shadow-sm transition-all hover:bg-blue-500/20">
                     <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
                     </span>
                     {timeRemaining}
@@ -815,7 +813,7 @@ export default function RoomPage() {
                         <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
                           <div className="h-full bg-gradient-to-r from-orange-400 to-orange-600 shadow-[0_0_10px_rgba(249,115,22,0.3)]" style={{ width: `${(option.voteCount / totalVotes) * 100}%` }}></div>
                         </div>
-                        {isActuallyVoted && <div className="text-[10px] font-black text-emerald-500 animate-pulse">MY VOTE</div>}
+                        {isActuallyVoted && <div className="text-[10px] font-black text-emerald-500">MY VOTE</div>}
                       </div>
                     </div>
                     <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${isActive ? 'bg-emerald-500 border-emerald-500 scale-110 shadow-lg shadow-emerald-500/30' : 'border-slate-200 bg-white'}`}>
@@ -830,19 +828,6 @@ export default function RoomPage() {
 
         {/* 푸터 */}
         <div className="pt-12 flex flex-col gap-4 border-t border-slate-200">
-          {!isClosed && (
-            <div className="flex justify-center gap-2 mb-1 animate-in fade-in slide-in-from-bottom-2 duration-700">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/5 text-blue-500 text-[11px] font-black border border-blue-500/10 shadow-sm">
-                <Clock className="w-3.5 h-3.5" />
-                {timeRemaining}
-              </div>
-              {room.allowMultipleVotes && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/5 text-orange-500 text-[11px] font-black border border-orange-500/10 shadow-sm">
-                  중복 투표 가능
-                </div>
-              )}
-            </div>
-          )}
           {(isModified || (votedPlaceIds.length === 0 && tempSelectedIds.length > 0)) && (
             <button
               onClick={handleSaveVote}
