@@ -40,6 +40,8 @@ interface RoomData {
   allowAddOptions: boolean;
   options: PlaceOption[];
   creatorUserId: string;
+  creatorNickname?: string;
+  creatorImage?: string | null;
   participantCount?: number;
 }
 
@@ -56,6 +58,12 @@ export default function RoomPage() {
   const [tempSelectedIds, setTempSelectedIds] = useState<string[]>([]);
   const [isVoting, setIsVoting] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  
+  const [showParticipants, setShowParticipants] = useState(false);
+  const [participants, setParticipants] = useState<any[]>([]);
+  const [loadingParticipants, setLoadingParticipants] = useState(false);
+  
+  const [loginNickname, setLoginNickname] = useState('');
   
   const [mapTargetCenter, setMapTargetCenter] = useState<{ lat: number, lng: number } | undefined>(undefined);
   const [hoveredPlaceId, setHoveredPlaceId] = useState<string | null>(null);
@@ -104,14 +112,48 @@ export default function RoomPage() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      fetchRoomData();
-      fetchVoteStatus();
+      const customNick = localStorage.getItem('pendingNickname');
+      if (customNick) {
+        fetch('/api/user/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nickname: customNick }),
+        }).then(() => {
+          localStorage.removeItem('pendingNickname');
+          fetchRoomData();
+          fetchVoteStatus();
+        });
+      } else {
+        fetchRoomData();
+        fetchVoteStatus();
+      }
       setShowLoginPrompt(false);
     } else if (status === 'unauthenticated') {
       setLoading(false);
       setShowLoginPrompt(true);
     }
   }, [status, fetchRoomData, fetchVoteStatus]);
+
+  const fetchParticipants = useCallback(async () => {
+    if (!hashedId) return;
+    setLoadingParticipants(true);
+    try {
+      const res = await fetch(`/api/room/${hashedId}/participants`);
+      const data = await res.json();
+      if (res.ok) setParticipants(data.participants || []);
+    } catch (err) {
+      console.error('Fetch participants error:', err);
+    } finally {
+      setLoadingParticipants(false);
+    }
+  }, [hashedId]);
+
+  useEffect(() => {
+    if (showParticipants) {
+      fetchParticipants();
+    }
+  }, [showParticipants, fetchParticipants]);
+
 
   const toggleSelection = (placeId: string) => {
     if (isClosed) return;
@@ -234,7 +276,28 @@ export default function RoomPage() {
 
     const updatedOptions: PlaceOption[] = [...(room?.options || []), newOption];
     await handleUpdateRoom({ options: updatedOptions });
+    
+    // 추천 UX 개선: 결과 초기화 및 닫기
+    setSearchResults([]);
+    setSearchQuery('');
     setIsAddingOption(false);
+  };
+
+  const handleDeleteOption = async (placeId: string) => {
+    if (!window.confirm('이 장소를 투표 목록에서 삭제하시겠습니까? 관련 투표 데이터도 모두 삭제됩니다.')) return;
+    const updatedOptions = room?.options.filter(o => o.placeId !== placeId) || [];
+    await handleUpdateRoom({ options: updatedOptions });
+  };
+
+  const handleOpenDeadlineEditor = () => {
+    if (room?.deadline) {
+      const d = new Date(room.deadline);
+      const dateStr = d.toISOString().split('T')[0];
+      const timeStr = d.toTimeString().slice(0, 5);
+      setNewDeadlineDate(dateStr);
+      setNewDeadlineTime(timeStr);
+    }
+    setIsEditingDeadline(true);
   };
 
   const isDeadlinePassed = room ? new Date(room.deadline) < new Date() : false;
@@ -255,6 +318,9 @@ export default function RoomPage() {
   const isModified = JSON.stringify([...tempSelectedIds].sort()) !== JSON.stringify([...votedPlaceIds].sort());
 
   const handleSignIn = () => {
+    if (loginNickname.trim()) {
+      localStorage.setItem('pendingNickname', loginNickname.trim());
+    }
     signIn('kakao', { callbackUrl: window.location.href });
   };
 
@@ -282,11 +348,23 @@ export default function RoomPage() {
               <p className="text-slate-400 font-medium tracking-tight">초대받은 투표 방에 오신 것을 환영합니다!</p>
             </div>
 
-            <div className="py-6 px-4 rounded-2xl bg-white/5 border border-white/5 space-y-3">
+            <div className="py-6 px-4 rounded-2xl bg-white/5 border border-white/5 space-y-4">
               <p className="text-sm text-slate-300 leading-relaxed font-medium">
                 프라이빗 투표에 참여하고 장소를 추천하려면<br/>
                 <span className="text-orange-400 font-bold underline underline-offset-4 decoration-orange-500/30">카카오 로그인</span>이 필요합니다.
               </p>
+              
+              <div className="pt-2 text-left space-y-1">
+                <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-1">투표에 사용할 닉네임 (선택)</label>
+                <input 
+                  type="text" 
+                  autoComplete="off"
+                  value={loginNickname}
+                  onChange={(e) => setLoginNickname(e.target.value)}
+                  placeholder="미입력 시 카카오톡 이름 사용" 
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-orange-500/50 text-sm text-white placeholder-slate-600 transition-colors"
+                />
+              </div>
             </div>
 
             <button 
@@ -354,19 +432,58 @@ export default function RoomPage() {
                 )}
               </div>
             )}
+            {/* 방장 정보 표시 */}
+            {room.creatorNickname && (
+              <div className="flex items-center gap-2 mt-1 px-3 py-1 bg-white/5 border border-white/5 rounded-full backdrop-blur-sm">
+                {room.creatorImage ? (
+                  <img src={room.creatorImage} alt="creator" className="w-4 h-4 rounded-full border border-white/10" />
+                ) : (
+                  <span className="text-[10px]">👑</span>
+                )}
+                <span className="text-[10px] text-slate-400 font-bold tracking-widest">{room.creatorNickname} 님의 투표방</span>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/50 text-slate-400 border border-white/5">
+            <button 
+              onClick={() => setShowParticipants(true)}
+              className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/50 text-slate-400 border border-white/5 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all"
+            >
               <svg className="w-3.5 h-3.5 text-orange-500/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-              현재 <span className="text-white font-bold">{room.participantCount || 0}명</span> 참여
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/50 text-slate-400 border border-white/5">
-              <svg className="w-3.5 h-3.5 text-blue-400/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              마감: {new Date(room.deadline).toLocaleDateString('ko-KR')} 일시
+              현재 <span className="text-white font-bold group-hover:text-orange-400">{room.participantCount || 0}명</span> 참여
+              <svg className="w-3 h-3 text-slate-600 group-hover:text-orange-500 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+            <div className="flex flex-wrap items-center justify-center gap-2 px-3 py-2 rounded-xl bg-slate-900/50 text-slate-400 border border-white/5">
+              <div className="flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-blue-400/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span className="font-medium text-white/90">
+                  마감: {new Date(room.deadline).toLocaleDateString('ko-KR')} {new Date(room.deadline).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                </span>
+              </div>
+              {!isClosed && (
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[10px] font-black border border-blue-500/20">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
+                  </span>
+                  {(() => {
+                    const diff = new Date(room.deadline).getTime() - new Date().getTime();
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    if (days > 0) return `${days}일 ${hours}시간 남음`;
+                    if (hours > 0) return `${hours}시간 ${mins}분 남음`;
+                    return `${mins}분 남음`;
+                  })()}
+                </div>
+              )}
             </div>
             {isCreator && !isClosed && (
-              <button onClick={() => setIsEditingDeadline(!isEditingDeadline)} className="p-1 px-2 rounded-lg text-slate-500 hover:text-orange-400 hover:bg-orange-500/5 transition-all text-[10px] font-bold">
+              <button 
+                onClick={handleOpenDeadlineEditor} 
+                className="p-1 px-2 rounded-lg text-slate-500 hover:text-orange-400 hover:bg-orange-500/5 transition-all text-[10px] font-bold"
+              >
                 시간 변경
               </button>
             )}
@@ -425,7 +542,7 @@ export default function RoomPage() {
         <div className="space-y-5 pt-4">
           <div className="flex justify-between items-center px-1">
             <h3 className="text-lg font-black text-white">어디가 좋을까요?</h3>
-            {room.allowAddOptions && (
+            {(room.allowAddOptions || isCreator) && (
               <button 
                 onClick={() => setIsAddingOption(!isAddingOption)} 
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-xs transition-all shadow-lg ${
@@ -448,9 +565,13 @@ export default function RoomPage() {
                 <input 
                   autoFocus
                   className="flex-1 bg-slate-950 border border-white/10 rounded-2xl px-5 py-3 outline-none focus:border-orange-500/50 text-sm"
+                  autoComplete="off"
                   placeholder="장소 이름이나 주소를 입력하세요"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    if (searchResults.length > 0) setSearchResults([]); // 타이핑 시작 시 이전 결과 비우기
+                  }}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
                 <button onClick={handleSearch} disabled={isSearching} className="bg-orange-600 hover:bg-orange-500 text-white px-6 rounded-2xl font-bold">
@@ -515,7 +636,18 @@ export default function RoomPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1.5">
                         <span className="font-extrabold text-xl text-white tracking-tight group-hover:text-orange-400 transition-colors uppercase">{option.name}</span>
-                        {option.placeUrl && <a href={option.placeUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-lg bg-slate-800 text-slate-500 hover:text-white transition-all"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>}
+                        <div className="flex gap-1 items-center">
+                          {option.placeUrl && <a href={option.placeUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-lg bg-slate-800 text-slate-500 hover:text-white transition-all"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>}
+                          {isCreator && (
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleDeleteOption(option.placeId); }}
+                              className="p-1.5 rounded-lg bg-slate-800 text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                              title="장소 삭제"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <p className="text-[12px] text-slate-500 mb-4 truncate">{option.address}</p>
                       <div className="flex items-center gap-3">
@@ -544,15 +676,89 @@ export default function RoomPage() {
 
         {/* 플로팅 바 */}
         {isModified && (
-          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-lg z-[100] animate-in slide-in-from-bottom-8 duration-500">
-            <div className="p-4 rounded-[2.5rem] bg-white/95 backdrop-blur-xl shadow-2xl border border-white flex items-center justify-between gap-4">
-              <div className="pl-4">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">장소 선택됨</p>
-                <p className="text-lg font-black text-slate-900 leading-none">{tempSelectedIds.length}개 후보</p>
+          <div className="fixed bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] sm:w-[calc(100%-3rem)] max-w-lg z-[100] animate-in slide-in-from-bottom-8 duration-500 font-sans">
+            <div className="p-3 sm:p-4 rounded-3xl sm:rounded-[2.5rem] bg-white/95 backdrop-blur-xl shadow-2xl border border-white flex items-center justify-between gap-2 sm:gap-4">
+              <div className="pl-2 sm:pl-4">
+                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">장소 선택됨</p>
+                <p className="text-base sm:text-lg font-black text-slate-900 leading-none">{tempSelectedIds.length}개 후보</p>
               </div>
-              <div className="flex gap-2">
-                <button onClick={() => setTempSelectedIds(votedPlaceIds)} className="px-6 py-4 rounded-2xl font-bold text-slate-500 hover:bg-slate-100 transition-colors text-sm">취소</button>
-                <button onClick={handleSaveVote} disabled={isVoting} className="px-8 py-4 rounded-2xl bg-slate-950 text-white font-black text-sm shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 tracking-tighter">{isVoting ? "저장 중..." : "투표 저장하기"}</button>
+              <div className="flex gap-1.5 sm:gap-2">
+                <button onClick={() => setTempSelectedIds(votedPlaceIds)} className="px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-slate-500 hover:bg-slate-100 transition-colors text-xs sm:text-sm">취소</button>
+                <button onClick={handleSaveVote} disabled={isVoting} className="px-5 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-slate-950 text-white font-black text-xs sm:text-sm shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 tracking-tighter whitespace-nowrap">{isVoting ? "저장 중..." : "투표 저장하기"}</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* 참여자 현황 모달 */}
+        {showParticipants && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowParticipants(false)}></div>
+            <div className="relative w-full max-w-md bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-300">
+              {/* 모달 헤더 */}
+              <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-black text-white">참여자별 투표 현황</h3>
+                  <p className="text-xs text-slate-500 mt-1 font-medium">실시간으로 반영되는 투표 결과입니다.</p>
+                </div>
+                <button 
+                  onClick={() => setShowParticipants(false)}
+                  className="p-2 rounded-full bg-white/5 text-slate-400 hover:text-white transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
+
+              {/* 모달 콘텐츠 */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+                {loadingParticipants ? (
+                  <div className="flex flex-col items-center justify-center py-12 gap-4">
+                    <div className="w-8 h-8 border-3 border-slate-700 border-t-orange-500 rounded-full animate-spin"></div>
+                    <p className="text-sm text-slate-500 font-bold">참여자 정보를 불러오는 중...</p>
+                  </div>
+                ) : participants.length === 0 ? (
+                  <div className="text-center py-12 space-y-3">
+                    <div className="text-4xl">😶</div>
+                    <p className="text-slate-400 font-bold">아직 참여자가 없습니다.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {participants.map((p, idx) => {
+                      const isMe = sessionUser && (sessionUser.id === p.kakaoUserId);
+                      return (
+                        <div key={p.kakaoUserId || idx} className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              {p.image ? (
+                                <img src={p.image} alt={p.nickname} className="w-10 h-10 rounded-full border-2 border-orange-500/30" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-slate-700 to-slate-800 flex items-center justify-center text-lg shadow-inner border border-white/10">👤</div>
+                              )}
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-black text-white">{p.nickname}</p>
+                                </div>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{p.places.length}개 선택됨</p>
+                              </div>
+                            </div>
+                            {isMe && <span className="px-2 py-0.5 rounded-md bg-white/5 text-slate-500 text-[8px] font-black uppercase tracking-tighter border border-white/5">나</span>}
+                          </div>
+                          <div className="flex flex-wrap gap-1.5 ml-1 pt-1 border-t border-white/5 mt-2 pt-3">
+                            {p.places.map((placeName: string, i: number) => (
+                              <span key={i} className="px-2 py-1 rounded-lg bg-orange-500/10 text-orange-400 text-[10px] font-black border border-orange-500/20">
+                                {placeName}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* 모달 푸터 */}
+              <div className="p-4 bg-slate-950/50 border-t border-white/5 text-center">
+                <p className="text-[10px] text-slate-600 font-bold uppercase tracking-[0.2em]">📍 갈래 말래? 실시간 현황 시스템</p>
               </div>
             </div>
           </div>

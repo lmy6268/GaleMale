@@ -27,9 +27,15 @@ export async function GET(
     const uniqueVoters = await Vote.distinct('userId', { roomId: (roomData as any)._id });
     const participantCount = uniqueVoters.length;
 
+    // 방장(생성자) 정보 가져오기
+    const User = (await import('@/models/User')).default;
+    const creatorInfo = await User.findOne({ kakaoUserId: roomData.creatorUserId }).select('nickname image').lean();
+
     return NextResponse.json({
       ...roomData,
-      participantCount
+      participantCount,
+      creatorNickname: creatorInfo?.nickname || '알 수 없는 사용자',
+      creatorImage: creatorInfo?.image || null
     });
   } catch (error: unknown) {
     console.error('Room fetch error:', error);
