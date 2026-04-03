@@ -149,18 +149,18 @@ export default function MapComponent({
 
   if (loading) {
     return (
-      <div className="w-full h-[300px] md:h-[400px] rounded-2xl bg-slate-900/50 flex items-center justify-center border border-white/5 animate-pulse">
-        <span className="text-slate-500 font-medium">지도를 불러오는 중...</span>
+      <div className="w-full h-[300px] md:h-[400px] rounded-2xl bg-white flex items-center justify-center border border-slate-200 animate-pulse shadow-sm">
+        <span className="text-slate-400 font-medium">지도를 불러오는 중...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="w-full h-[300px] md:h-[400px] rounded-2xl bg-slate-900/50 flex flex-col items-center justify-center border border-rose-500/20 text-center p-4">
-        <span className="text-rose-400 font-bold mb-2">지도 로드 실패</span>
-        <span className="text-slate-500 text-xs">{error.message}</span>
-        <div className="text-slate-600 text-[10px] mt-4 space-y-1">
+      <div className="w-full h-[300px] md:h-[400px] rounded-2xl bg-white flex flex-col items-center justify-center border border-rose-100 text-center p-4 shadow-sm">
+        <span className="text-rose-500 font-bold mb-2">지도 로드 실패</span>
+        <span className="text-slate-400 text-xs">{error.message}</span>
+        <div className="text-slate-300 text-[10px] mt-4 space-y-1">
           <p>1. 카카오 개발자 콘솔 &gt; 플랫폼</p>
           <p>2. JavaScript 키 확인</p>
         </div>
@@ -169,7 +169,7 @@ export default function MapComponent({
   }
 
   return (
-    <div className="w-full h-[300px] md:h-[400px] rounded-2xl overflow-hidden border border-white/10 shadow-inner group relative">
+    <div className="w-full h-[300px] md:h-[400px] rounded-2xl overflow-hidden border border-slate-200 shadow-md group relative">
       {/* 내 위치 버튼 - 사용자 요청의 화이트 조준경 스타일 적용 */}
       <div className="absolute bottom-4 right-4 z-[20] pointer-events-auto">
         <button 

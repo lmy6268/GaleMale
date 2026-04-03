@@ -1,10 +1,11 @@
 'use client';
 
 import { useSession, signIn } from 'next-auth/react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
 import MapComponent, { MapPlace } from '@/components/MapComponent';
-import Link from 'next/link';
+import { ChevronLeft, Home, Calendar, Users, ExternalLink, Trash2, Edit3, Share2 } from 'lucide-react';
 
 interface KakaoPlace {
   id: string;
@@ -326,16 +327,16 @@ export default function RoomPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <main className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-slate-700 border-t-orange-500 rounded-full animate-spin"></div>
+      <main className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-slate-200 border-t-orange-500 rounded-full animate-spin"></div>
       </main>
     );
   }
 
   if (status === 'unauthenticated' || showLoginPrompt) {
     return (
-      <main className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black">
-        <div className="w-full max-w-md p-8 rounded-3xl bg-slate-900/40 border border-white/5 backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in duration-500">
+      <main className="min-h-screen bg-slate-50 text-slate-900 flex flex-col items-center justify-center p-6 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-white via-slate-50 to-slate-100">
+        <div className="w-full max-w-md p-8 rounded-3xl bg-white border border-slate-200/50 backdrop-blur-xl shadow-2xl shadow-slate-200/50 animate-in fade-in zoom-in duration-500">
           <div className="text-center space-y-6">
             <div className="flex justify-center">
               <div className="w-16 h-16 bg-gradient-to-tr from-orange-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-3">
@@ -345,24 +346,24 @@ export default function RoomPage() {
             
             <div className="space-y-2">
               <h1 className="text-3xl font-black bg-gradient-to-r from-orange-400 to-rose-500 bg-clip-text text-transparent">갈래 말래?</h1>
-              <p className="text-slate-400 font-medium tracking-tight">초대받은 투표 방에 오신 것을 환영합니다!</p>
+              <p className="text-slate-500 font-medium tracking-tight">초대받은 투표 방에 오신 것을 환영합니다!</p>
             </div>
 
-            <div className="py-6 px-4 rounded-2xl bg-white/5 border border-white/5 space-y-4">
-              <p className="text-sm text-slate-300 leading-relaxed font-medium">
+            <div className="py-6 px-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-inner space-y-4">
+              <p className="text-sm text-slate-600 leading-relaxed font-medium">
                 프라이빗 투표에 참여하고 장소를 추천하려면<br/>
-                <span className="text-orange-400 font-bold underline underline-offset-4 decoration-orange-500/30">카카오 로그인</span>이 필요합니다.
+                <span className="text-orange-500 font-bold underline underline-offset-4 decoration-orange-500/30">카카오 로그인</span>이 필요합니다.
               </p>
               
               <div className="pt-2 text-left space-y-1">
-                <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-1">투표에 사용할 닉네임 (선택)</label>
+                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-widest pl-1">투표에 사용할 닉네임 (선택)</label>
                 <input 
                   type="text" 
                   autoComplete="off"
                   value={loginNickname}
                   onChange={(e) => setLoginNickname(e.target.value)}
                   placeholder="미입력 시 카카오톡 이름 사용" 
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-orange-500/50 text-sm text-white placeholder-slate-600 transition-colors"
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-orange-500/50 text-sm text-slate-900 placeholder-slate-400 shadow-sm transition-colors"
                 />
               </div>
             </div>
@@ -377,7 +378,7 @@ export default function RoomPage() {
               카카오로 참여하기
             </button>
 
-            <button onClick={() => router.push('/')} className="text-xs text-slate-500 hover:text-slate-300 underline transition-colors">
+            <button onClick={() => router.push('/')} className="text-xs text-slate-400 hover:text-slate-600 underline transition-colors">
               다음에 할게요
             </button>
           </div>
@@ -388,16 +389,35 @@ export default function RoomPage() {
 
   if (error || !room) {
     return (
-      <main className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-2xl font-bold text-white mb-4">오류 발생</h1>
-        <p className="text-slate-400 mb-8">{error || '방을 찾을 수 없습니다.'}</p>
-        <Link href="/" className="px-6 py-3 rounded-xl bg-slate-800 text-white font-bold">홈으로</Link>
+      <main className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+        <h1 className="text-2xl font-bold text-slate-900 mb-4">오류 발생</h1>
+        <p className="text-slate-500 mb-8">{error || '방을 찾을 수 없습니다.'}</p>
+        <button onClick={() => router.push('/')} className="px-6 py-3 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold shadow-sm">홈으로</button>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 pb-32 pt-10 px-6 text-slate-100 flex justify-center selection:bg-orange-500/30">
+    <main className="min-h-screen bg-slate-50 pb-32 pt-10 px-6 text-slate-900 flex justify-center selection:bg-orange-500/30">
+      <div className="fixed top-6 left-6 z-[100]">
+        <button 
+          onClick={() => router.back()}
+          className="p-3 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-slate-900 hover:border-orange-200 hover:bg-orange-50 transition-all shadow-sm hover:shadow-md group"
+          title="이전 페이지로"
+        >
+          <ChevronLeft className="w-6 h-6 transition-transform group-hover:-translate-x-0.5" />
+        </button>
+      </div>
+      <div className="fixed top-6 right-6 z-[100]">
+        <button 
+          onClick={() => router.push('/')}
+          className="p-3 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-slate-900 hover:border-orange-200 hover:bg-orange-50 transition-all shadow-sm hover:shadow-md group"
+          title="홈으로"
+        >
+          <Home className="w-6 h-6 transition-transform group-hover:scale-110" />
+        </button>
+      </div>
+
       <div className="w-full max-w-2xl space-y-6">
         
         {/* 헤더 */}
@@ -416,31 +436,31 @@ export default function RoomPage() {
               <div className="flex w-full max-w-sm gap-2">
                 <input 
                   autoFocus
-                  className="flex-1 bg-slate-900 border border-orange-500/50 rounded-xl px-4 py-2 text-xl font-bold outline-none"
+                  className="flex-1 bg-white border border-orange-500/30 rounded-xl px-4 py-2 text-xl font-bold outline-none shadow-sm"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                 />
-                <button onClick={() => handleUpdateRoom({ title: newTitle })} className="bg-orange-500 text-white px-4 rounded-xl font-bold text-sm">저장</button>
+                <button onClick={() => handleUpdateRoom({ title: newTitle })} className="bg-orange-500 text-white px-4 rounded-xl font-bold text-sm shadow-lg shadow-orange-500/20">저장</button>
               </div>
             ) : (
               <div className="flex items-center justify-center gap-3">
-                <h1 className="text-3xl font-black text-white tracking-tight">{room.title}</h1>
+                <h1 className="text-3xl font-black text-slate-900 tracking-tight">{room.title}</h1>
                 {isCreator && (
-                  <button onClick={() => { setNewTitle(room.title); setIsEditingTitle(true); }} className="p-1.5 rounded-lg text-slate-600 hover:text-white hover:bg-white/5 transition-all">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                  <button onClick={() => { setNewTitle(room.title); setIsEditingTitle(true); }} className="p-1.5 rounded-lg text-slate-300 hover:text-slate-600 hover:bg-slate-100 transition-all" title="제목 수정">
+                    <Edit3 className="w-4 h-4" />
                   </button>
                 )}
               </div>
             )}
             {/* 방장 정보 표시 */}
             {room.creatorNickname && (
-              <div className="flex items-center gap-2 mt-1 px-3 py-1 bg-white/5 border border-white/5 rounded-full backdrop-blur-sm">
+              <div className="flex items-center gap-2 mt-1 px-3 py-1 bg-white border border-slate-200 rounded-full shadow-sm">
                 {room.creatorImage ? (
-                  <img src={room.creatorImage} alt="creator" className="w-4 h-4 rounded-full border border-white/10" />
+                  <Image src={room.creatorImage} alt="creator" width={16} height={16} className="rounded-full border border-slate-100" />
                 ) : (
                   <span className="text-[10px]">👑</span>
                 )}
-                <span className="text-[10px] text-slate-400 font-bold tracking-widest">{room.creatorNickname} 님의 투표방</span>
+                <span className="text-[10px] text-slate-500 font-bold tracking-widest">{room.creatorNickname} 님의 투표방</span>
               </div>
             )}
           </div>
@@ -448,16 +468,16 @@ export default function RoomPage() {
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
             <button 
               onClick={() => setShowParticipants(true)}
-              className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/50 text-slate-400 border border-white/5 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all"
+              className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-slate-500 border border-slate-200 shadow-sm hover:border-orange-200 hover:bg-orange-50 transition-all"
             >
-              <svg className="w-3.5 h-3.5 text-orange-500/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-              현재 <span className="text-white font-bold group-hover:text-orange-400">{room.participantCount || 0}명</span> 참여
-              <svg className="w-3 h-3 text-slate-600 group-hover:text-orange-500 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+              <Users className="w-3.5 h-3.5 text-orange-500/70" />
+              현재 <span className="text-slate-900 font-bold group-hover:text-orange-600">{room.participantCount || 0}명</span> 참여
+              <ChevronLeft className="w-3 h-3 text-slate-300 group-hover:text-orange-400 transition-transform rotate-180 group-hover:translate-x-0.5" />
             </button>
-            <div className="flex flex-wrap items-center justify-center gap-2 px-3 py-2 rounded-xl bg-slate-900/50 text-slate-400 border border-white/5">
+            <div className="flex flex-wrap items-center justify-center gap-2 px-3 py-2 rounded-xl bg-white text-slate-500 border border-slate-200 shadow-sm">
               <div className="flex items-center gap-1.5">
-                <svg className="w-3.5 h-3.5 text-blue-400/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <span className="font-medium text-white/90">
+                <Calendar className="w-3.5 h-3.5 text-blue-500/70" />
+                <span className="font-medium text-slate-700">
                   마감: {new Date(room.deadline).toLocaleDateString('ko-KR')} {new Date(room.deadline).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}
                 </span>
               </div>
@@ -482,34 +502,34 @@ export default function RoomPage() {
             {isCreator && !isClosed && (
               <button 
                 onClick={handleOpenDeadlineEditor} 
-                className="p-1 px-2 rounded-lg text-slate-500 hover:text-orange-400 hover:bg-orange-500/5 transition-all text-[10px] font-bold"
+                className="p-1 px-2 rounded-lg text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all text-[10px] font-bold"
               >
                 시간 변경
               </button>
             )}
             
             {isCreator && (
-              <div className="flex gap-2 ml-1 border-l border-white/10 pl-3">
+              <div className="flex gap-2 ml-1 border-l border-slate-200 pl-3">
                 {!isClosed ? (
-                  <button onClick={() => handleUpdateRoom({ isClosed: true })} className="p-1 px-2 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all text-[10px] font-bold">강제 마감</button>
+                  <button onClick={() => handleUpdateRoom({ isClosed: true })} className="p-1 px-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all text-[10px] font-bold">강제 마감</button>
                 ) : (
-                  <button onClick={() => handleUpdateRoom({ isClosed: false })} className="p-1 px-2 rounded-lg text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/5 transition-all text-[10px] font-bold">다시 열기</button>
+                  <button onClick={() => handleUpdateRoom({ isClosed: false })} className="p-1 px-2 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all text-[10px] font-bold">다시 열기</button>
                 )}
-                <button onClick={handleDeleteRoom} className="p-1 px-2 rounded-lg text-slate-500 hover:text-red-500 hover:bg-red-500/10 transition-all text-[10px] font-bold">투표 삭제</button>
+                <button onClick={handleDeleteRoom} className="p-1 px-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all text-[10px] font-bold">투표 삭제</button>
               </div>
             )}
             {isClosed && <span className="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-400 text-[10px] font-black uppercase">마감 완료</span>}
           </div>
           
           {isEditingDeadline && (
-            <div className="max-w-sm mx-auto p-4 rounded-2xl bg-slate-900 border border-white/5 space-y-3 animate-in fade-in slide-in-from-top-2">
+            <div className="max-w-sm mx-auto p-4 rounded-2xl bg-white border border-slate-200 shadow-xl space-y-3 animate-in fade-in slide-in-from-top-2">
                <div className="flex flex-col sm:flex-row gap-2">
-                 <input type="date" value={newDeadlineDate} onChange={(e) => setNewDeadlineDate(e.target.value)} className="flex-[2] bg-slate-950 border border-white/10 rounded-xl px-3 py-1.5 text-sm outline-none" />
-                 <input type="time" value={newDeadlineTime} onChange={(e) => setNewDeadlineTime(e.target.value)} className="flex-1 bg-slate-950 border border-white/10 rounded-xl px-3 py-1.5 text-sm outline-none" />
+                 <input type="date" value={newDeadlineDate} onChange={(e) => setNewDeadlineDate(e.target.value)} className="flex-[2] bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-sm outline-none focus:border-orange-300" />
+                 <input type="time" value={newDeadlineTime} onChange={(e) => setNewDeadlineTime(e.target.value)} className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-sm outline-none focus:border-orange-300" />
                </div>
                <button 
                 onClick={() => handleUpdateRoom({ deadline: new Date(`${newDeadlineDate}T${newDeadlineTime}`).toISOString() })}
-                className="w-full py-2 bg-orange-600 hover:bg-orange-500 text-white text-sm font-bold rounded-xl transition-all"
+                className="w-full py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-orange-500/20"
                >
                  마감 기한 변경
                </button>
@@ -541,14 +561,14 @@ export default function RoomPage() {
         {/* 투표 리스트 */}
         <div className="space-y-5 pt-4">
           <div className="flex justify-between items-center px-1">
-            <h3 className="text-lg font-black text-white">어디가 좋을까요?</h3>
+            <h3 className="text-lg font-black text-slate-900">어디가 좋을까요?</h3>
             {(room.allowAddOptions || isCreator) && (
               <button 
                 onClick={() => setIsAddingOption(!isAddingOption)} 
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-xs transition-all shadow-lg ${
                   isAddingOption 
-                    ? 'bg-slate-800 text-slate-300' 
-                    : 'bg-orange-500 text-white hover:scale-105 active:scale-95'
+                    ? 'bg-slate-200 text-slate-600' 
+                    : 'bg-orange-500 text-white hover:scale-105 active:scale-95 shadow-orange-500/20'
                 }`}
               >
                 {isAddingOption ? '취소' : <>
@@ -560,11 +580,11 @@ export default function RoomPage() {
           </div>
 
           {isAddingOption && (
-            <div className="p-6 rounded-[2.5rem] bg-slate-900 border border-orange-500/30 space-y-4 animate-in fade-in slide-in-from-top-4 duration-500 shadow-2xl shadow-orange-950/20">
+            <div className="p-6 rounded-[2.5rem] bg-white border border-slate-200 space-y-4 animate-in fade-in slide-in-from-top-4 duration-500 shadow-2xl shadow-slate-200/50">
               <div className="flex gap-2">
                 <input 
                   autoFocus
-                  className="flex-1 bg-slate-950 border border-white/10 rounded-2xl px-5 py-3 outline-none focus:border-orange-500/50 text-sm"
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 outline-none focus:border-orange-300 text-sm placeholder-slate-400"
                   autoComplete="off"
                   placeholder="장소 이름이나 주소를 입력하세요"
                   value={searchQuery}
@@ -574,7 +594,7 @@ export default function RoomPage() {
                   }}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
-                <button onClick={handleSearch} disabled={isSearching} className="bg-orange-600 hover:bg-orange-500 text-white px-6 rounded-2xl font-bold">
+                <button onClick={handleSearch} disabled={isSearching} className="bg-orange-500 hover:bg-orange-600 text-white px-6 rounded-2xl font-bold shadow-lg shadow-orange-500/20">
                   {isSearching ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : '검색'}
                 </button>
               </div>
@@ -592,15 +612,15 @@ export default function RoomPage() {
                         setHoveredPlaceId(null);
                         setMapTargetCenter(undefined);
                       }}
-                      className="p-4 rounded-2xl bg-slate-950 border border-white/5 hover:border-orange-500/30 transition-all flex justify-between items-center group cursor-pointer"
+                      className="p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-orange-300 transition-all flex justify-between items-center group cursor-pointer shadow-sm hover:shadow-md"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="min-w-0 py-0.5">
-                          <h4 className="text-sm font-bold text-white truncate group-hover:text-orange-400 transition-colors">{item.place_name}</h4>
+                          <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-orange-600 transition-colors">{item.place_name}</h4>
                           <p className="text-[10px] text-slate-500 truncate mt-0.5">{item.road_address_name || item.address_name}</p>
                         </div>
                       </div>
-                      <div className="p-1.5 rounded-xl bg-orange-500/10 text-orange-400 group-hover:bg-orange-600 group-hover:text-white transition-all text-sm font-bold">추가</div>
+                      <div className="p-1.5 rounded-xl bg-orange-50 text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all text-sm font-bold">추가</div>
                     </div>
                   ))}
                 </div>
@@ -626,25 +646,25 @@ export default function RoomPage() {
                     setMapTargetCenter(undefined);
                   }}
                   onClick={() => toggleSelection(option.placeId)}
-                  className={`p-6 rounded-[2.5rem] border transition-all duration-300 cursor-pointer group ${
+                  className={`p-6 rounded-[2.5rem] border transition-all duration-300 cursor-pointer group shadow-sm hover:shadow-xl ${
                     isActive 
-                      ? 'bg-emerald-500/10 border-emerald-500/60 shadow-[0_0_40px_-15px_rgba(16,185,129,0.3)] scale-[1.02]' 
-                      : 'bg-slate-900/40 border-white/5 hover:border-white/10 hover:translate-x-1'
+                      ? 'bg-white border-emerald-500 shadow-[0_0_40px_-15px_rgba(16,185,129,0.2)] scale-[1.02]' 
+                      : 'bg-white border-slate-100 hover:border-orange-200 hover:translate-x-1'
                   }`}
                 >
                   <div className="flex justify-between items-start gap-5">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1.5">
-                        <span className="font-extrabold text-xl text-white tracking-tight group-hover:text-orange-400 transition-colors uppercase">{option.name}</span>
+                        <span className="font-extrabold text-xl text-slate-900 tracking-tight group-hover:text-orange-600 transition-colors uppercase">{option.name}</span>
                         <div className="flex gap-1 items-center">
-                          {option.placeUrl && <a href={option.placeUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-lg bg-slate-800 text-slate-500 hover:text-white transition-all"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>}
+                          {option.placeUrl && <a href={option.placeUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:text-slate-900 transition-all"><ExternalLink className="w-4 h-4" /></a>}
                           {isCreator && (
                             <button 
                               onClick={(e) => { e.stopPropagation(); handleDeleteOption(option.placeId); }}
-                              className="p-1.5 rounded-lg bg-slate-800 text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                              className="p-1.5 rounded-lg bg-slate-50 text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all"
                               title="장소 삭제"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           )}
                         </div>
@@ -652,13 +672,13 @@ export default function RoomPage() {
                       <p className="text-[12px] text-slate-500 mb-4 truncate">{option.address}</p>
                       <div className="flex items-center gap-3">
                         <div className="text-2xl font-black text-orange-500">{option.voteCount}<span className="text-[10px] text-slate-600 font-bold ml-1">표</span></div>
-                        <div className="h-1.5 flex-1 bg-slate-800/50 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-orange-500 to-rose-500" style={{ width: `${(option.voteCount / totalVotes) * 100}%` }}></div>
+                        <div className="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-orange-400 to-rose-500 shadow-[0_0_10px_rgba(249,115,22,0.3)]" style={{ width: `${(option.voteCount / totalVotes) * 100}%` }}></div>
                         </div>
                         {isActuallyVoted && <div className="text-[10px] font-black text-emerald-500 animate-pulse">MY VOTE</div>}
                       </div>
                     </div>
-                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${isActive ? 'bg-emerald-500 border-emerald-500 scale-110' : 'border-white/10 bg-slate-900'}`}>
+                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${isActive ? 'bg-emerald-500 border-emerald-500 scale-110 shadow-lg shadow-emerald-500/30' : 'border-slate-200 bg-white'}`}>
                       {isActive && <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
                     </div>
                   </div>
@@ -669,9 +689,14 @@ export default function RoomPage() {
         </div>
 
         {/* 푸터 */}
-        <div className="pt-12 flex flex-col gap-4 border-t border-white/5">
-          <button onClick={() => { navigator.clipboard.writeText(window.location.href); alert('복사되었습니다!'); }} className="w-full py-5 rounded-[2rem] border border-white/5 bg-slate-900/40 text-slate-500 font-black text-sm hover:text-white transition-all flex items-center justify-center gap-3 active:scale-95">초대 링크 복사하기</button>
-          <Link href="/" className="text-center text-slate-700 text-xs font-bold hover:text-slate-400 transition-all tracking-widest uppercase">홈으로 돌아가기</Link>
+        <div className="pt-12 flex flex-col gap-4 border-t border-slate-200">
+          <button 
+            onClick={() => { navigator.clipboard.writeText(window.location.href); alert('복사되었습니다!'); }} 
+            className="w-full py-5 rounded-[2rem] border border-slate-200 bg-white text-slate-500 font-black text-sm hover:text-slate-900 hover:border-orange-200 hover:bg-orange-50 transition-all flex items-center justify-center gap-3 active:scale-95 shadow-sm hover:shadow-md group"
+          >
+            <Share2 className="w-5 h-5 text-orange-500/50 group-hover:text-orange-500 transition-colors" />
+            초대 링크 복사하기
+          </button>
         </div>
 
         {/* 플로팅 바 */}
@@ -692,17 +717,17 @@ export default function RoomPage() {
         {/* 참여자 현황 모달 */}
         {showParticipants && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowParticipants(false)}></div>
-            <div className="relative w-full max-w-md bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-300">
+            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowParticipants(false)}></div>
+            <div className="relative w-full max-w-md bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-300">
               {/* 모달 헤더 */}
-              <div className="p-6 border-b border-white/5 flex items-center justify-between">
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-black text-white">참여자별 투표 현황</h3>
+                  <h3 className="text-xl font-black text-slate-900">참여자별 투표 현황</h3>
                   <p className="text-xs text-slate-500 mt-1 font-medium">실시간으로 반영되는 투표 결과입니다.</p>
                 </div>
                 <button 
                   onClick={() => setShowParticipants(false)}
-                  className="p-2 rounded-full bg-white/5 text-slate-400 hover:text-white transition-colors"
+                  className="p-2 rounded-full bg-slate-50 text-slate-400 hover:text-slate-900 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
@@ -725,26 +750,26 @@ export default function RoomPage() {
                     {participants.map((p, idx) => {
                       const isMe = sessionUser && (sessionUser.id === p.kakaoUserId);
                       return (
-                        <div key={p.kakaoUserId || idx} className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-3">
+                        <div key={p.kakaoUserId || idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               {p.image ? (
-                                <img src={p.image} alt={p.nickname} className="w-10 h-10 rounded-full border-2 border-orange-500/30" />
+                                <Image src={p.image} alt={p.nickname} width={40} height={40} className="rounded-full border-2 border-orange-200" />
                               ) : (
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-slate-700 to-slate-800 flex items-center justify-center text-lg shadow-inner border border-white/10">👤</div>
+                                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-lg shadow-inner border border-slate-300">👤</div>
                               )}
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <p className="text-sm font-black text-white">{p.nickname}</p>
+                                  <p className="text-sm font-black text-slate-900">{p.nickname}</p>
                                 </div>
                                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{p.places.length}개 선택됨</p>
                               </div>
                             </div>
-                            {isMe && <span className="px-2 py-0.5 rounded-md bg-white/5 text-slate-500 text-[8px] font-black uppercase tracking-tighter border border-white/5">나</span>}
+                            {isMe && <span className="px-2 py-0.5 rounded-md bg-white text-slate-400 text-[8px] font-black uppercase tracking-tighter border border-slate-200 shadow-sm">나</span>}
                           </div>
-                          <div className="flex flex-wrap gap-1.5 ml-1 pt-1 border-t border-white/5 mt-2 pt-3">
-                            {p.places.map((placeName: string, i: number) => (
-                              <span key={i} className="px-2 py-1 rounded-lg bg-orange-500/10 text-orange-400 text-[10px] font-black border border-orange-500/20">
+                          <div className="flex flex-wrap gap-1.5 ml-1 pt-1 border-t border-slate-100 mt-2 pt-3">
+                            {(p.places as string[]).map((placeName, i) => (
+                              <span key={i} className="px-2 py-1 rounded-lg bg-orange-50 text-orange-600 text-[10px] font-black border border-orange-100">
                                 {placeName}
                               </span>
                             ))}
@@ -757,8 +782,8 @@ export default function RoomPage() {
               </div>
 
               {/* 모달 푸터 */}
-              <div className="p-4 bg-slate-950/50 border-t border-white/5 text-center">
-                <p className="text-[10px] text-slate-600 font-bold uppercase tracking-[0.2em]">📍 갈래 말래? 실시간 현황 시스템</p>
+              <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">📍 갈래 말래? 실시간 현황 시스템</p>
               </div>
             </div>
           </div>

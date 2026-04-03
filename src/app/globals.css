@@ -2,7 +2,8 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #020617;
 }
 
 @theme inline {
@@ -12,12 +13,15 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* 라이트 모드 테마 고정을 위해 다크 모드 속성 일시 비활성화 */
+/*
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
 }
+*/
 
 body {
   background: var(--background);
