@@ -493,15 +493,11 @@ export default function RoomPage() {
         {/* 헤더 */}
         <div className="text-center space-y-4">
           {isClosed ? (
-            <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-100 animate-in slide-in-from-top-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+            <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-100 animate-in slide-in-from-top-1 select-none cursor-default">
               <span className="text-[10px] font-black text-rose-600 uppercase tracking-wider">투표 종료됨</span>
             </div>
           ) : (
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 text-orange-400 text-[10px] font-black tracking-widest uppercase border border-orange-500/20">
-              <span className="relative flex h-2 w-2">
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
-              </span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 text-orange-400 text-[10px] font-black tracking-widest uppercase border border-orange-500/20 select-none cursor-default">
               실시간 투표 진행 중
             </div>
           )}
@@ -520,7 +516,7 @@ export default function RoomPage() {
               </div>
             ) : (
               <div className="flex items-center justify-center gap-3">
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight">{room.title}</h1>
+                <h1 className="text-3xl font-black text-slate-900 tracking-tight select-none cursor-default">{room.title}</h1>
                 {isCreator && (
                   <button onClick={() => { setNewTitle(room.title); setIsEditingTitle(true); }} className="p-1.5 rounded-lg text-slate-300 hover:text-slate-600 hover:bg-slate-100 transition-all" title="제목 수정">
                     <Edit3 className="w-4 h-4" />
@@ -531,7 +527,7 @@ export default function RoomPage() {
             {/* 방장 정보 표시 */}
             {room.creatorNickname && (
               <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
-                <div className="flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-full shadow-sm">
+                <div className="flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-full shadow-sm select-none cursor-default">
                   {room.creatorImage ? (
                     <Image src={room.creatorImage} alt="creator" width={16} height={16} className="rounded-full border border-slate-100" />
                   ) : (
@@ -541,16 +537,13 @@ export default function RoomPage() {
                 </div>
                 
                 {!isClosed && (
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-black border border-blue-500/20 shadow-sm transition-all hover:bg-blue-500/20">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
-                    </span>
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-black border border-blue-500/20 shadow-sm transition-all select-none cursor-default">
                     {timeRemaining}
                   </div>
                 )}
 
                 {room.allowMultipleVotes && (
-                  <div className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-500 text-[10px] font-black border border-orange-500/20 shadow-sm transition-all hover:bg-orange-500/20">
+                  <div className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-500 text-[10px] font-black border border-orange-500/20 shadow-sm transition-all hover:bg-orange-500/20 select-none cursor-default">
                     중복 투표 가능
                   </div>
                 )}
@@ -561,15 +554,15 @@ export default function RoomPage() {
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
             <button 
               onClick={() => setShowParticipants(true)}
-              className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-slate-500 border border-slate-200 shadow-sm hover:border-orange-200 hover:bg-orange-50 transition-all"
+              className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-slate-500 border border-slate-200 shadow-sm hover:border-orange-200 hover:bg-orange-50 transition-all select-none"
             >
               <Users className="w-3.5 h-3.5 text-orange-500/70" />
               현재 <span className="text-slate-900 font-bold group-hover:text-orange-600">{room.participantCount || 0}명</span> 참여
               <ChevronLeft className="w-3 h-3 text-slate-300 group-hover:text-orange-400 transition-transform rotate-180 group-hover:translate-x-0.5" />
             </button>
-            <div className="flex flex-wrap items-center justify-center gap-4 px-4 py-2.5 rounded-2xl bg-white text-slate-500 border border-slate-200 shadow-sm transition-all hover:border-blue-100 group/deadline">
+            <div className="flex flex-wrap items-center justify-center gap-4 px-4 py-2.5 rounded-2xl bg-white text-slate-500 border border-slate-200 shadow-sm transition-all hover:border-blue-100 group/deadline select-none cursor-default">
               <div className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-blue-500/70 group-hover/deadline:scale-110 transition-transform" />
+                <Calendar className="w-3.5 h-3.5 text-blue-500/70 transition-transform" />
                 <span className="font-medium text-slate-700">
                   마감: {new Date(room.deadline).toLocaleDateString('ko-KR')} {new Date(room.deadline).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}
                 </span>
@@ -699,7 +692,7 @@ export default function RoomPage() {
         {/* 투표 리스트 */}
         <div className="space-y-5 pt-4">
           <div className="flex justify-between items-center px-1">
-            <h3 className="text-lg font-black text-slate-900">어디가 좋을까요?</h3>
+            <h3 className="text-lg font-black text-slate-900 select-none cursor-default">어디가 좋을까요?</h3>
             {(room.allowAddOptions || isCreator) && (
               <button 
                 onClick={() => setIsAddingOption(!isAddingOption)} 
@@ -754,8 +747,8 @@ export default function RoomPage() {
                     >
                       <div className="flex-1 min-w-0">
                         <div className="min-w-0 py-0.5">
-                          <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-orange-600 transition-colors">{item.place_name}</h4>
-                          <p className="text-[10px] text-slate-500 truncate mt-0.5">{item.road_address_name || item.address_name}</p>
+                          <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-orange-600 transition-colors select-none cursor-default">{item.place_name}</h4>
+                          <p className="text-[10px] text-slate-500 truncate mt-0.5 select-none cursor-default">{item.road_address_name || item.address_name}</p>
                         </div>
                       </div>
                       <div className="p-1.5 rounded-xl bg-orange-50 text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all text-sm font-bold">추가</div>
