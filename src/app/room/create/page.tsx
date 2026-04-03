@@ -347,7 +347,7 @@ export default function CreateRoomPage() {
       `}</style>
       <div className="w-full max-w-xl space-y-6">
         <div className="mb-10 text-center">
-          <h1 className="text-3xl font-extrabold text-slate-900 mb-2">프라이빗 투표 방 생성</h1>
+          <h1 className="text-3xl font-extrabold text-slate-900 mb-2">새로운 장소 투표</h1>
           <p className="text-slate-500">친구들에게 제안할 장소들을 골라주세요.</p>
         </div>
 

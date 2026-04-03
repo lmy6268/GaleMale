@@ -59,12 +59,52 @@ export default function RoomPage() {
   const [tempSelectedIds, setTempSelectedIds] = useState<string[]>([]);
   const [isVoting, setIsVoting] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [username, setUsername] = useState('');
+  const [nicknameError, setNicknameError] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
+
+  // 닉네임 등록 핸들러 (신규 유저용)
+  const handleJoinWithNickname = async () => {
+    const trimmed = username.trim();
+    if (!trimmed) {
+      setNicknameError('닉네임을 입력해주세요.');
+      return;
+    }
+
+    // 유효성 체크
+    const nicknameRegex = /^[a-zA-Z0-9가-힣]+$/;
+    if (!nicknameRegex.test(trimmed)) {
+      setNicknameError('한글, 영문, 숫자만 가능합니다 (공백 불가)');
+      return;
+    }
+
+    setIsJoining(true);
+    setNicknameError('');
+
+    try {
+      const res = await fetch('/api/user/nickname', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname: trimmed }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setShowLoginPrompt(false);
+        fetchRoomData();
+        fetchVoteStatus();
+      } else {
+        setNicknameError(data.error || '등록에 실패했습니다.');
+      }
+    } catch {
+      setNicknameError('서버 오류가 발생했습니다.');
+    } finally {
+      setIsJoining(false);
+    }
+  };
   
   const [showParticipants, setShowParticipants] = useState(false);
   const [participants, setParticipants] = useState<any[]>([]);
   const [loadingParticipants, setLoadingParticipants] = useState(false);
-  
-  const [loginNickname, setLoginNickname] = useState('');
   
   const [mapTargetCenter, setMapTargetCenter] = useState<{ lat: number, lng: number } | undefined>(undefined);
   const [hoveredPlaceId, setHoveredPlaceId] = useState<string | null>(null);
@@ -111,26 +151,23 @@ export default function RoomPage() {
     }
   }, [hashedId]);
 
+  // 로그인 후 닉네임 체크 및 데이터 로드
   useEffect(() => {
     if (status === 'authenticated') {
-      const customNick = localStorage.getItem('pendingNickname');
-      if (customNick) {
-        fetch('/api/user/profile', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nickname: customNick }),
-        }).then(() => {
-          localStorage.removeItem('pendingNickname');
-          fetchRoomData();
-          fetchVoteStatus();
+      // 닉네임 조회 후 없으면 등록 유도
+      fetch('/api/user/nickname')
+        .then(res => res.json())
+        .then(data => {
+          if (!data.nickname) {
+            setShowLoginPrompt(true); // 등록 유도를 위해 프롬프트 유지
+          } else {
+            setShowLoginPrompt(false);
+          }
         });
-      } else {
-        fetchRoomData();
-        fetchVoteStatus();
-      }
-      setShowLoginPrompt(false);
+      
+      fetchRoomData();
+      fetchVoteStatus();
     } else if (status === 'unauthenticated') {
-      setLoading(false);
       setShowLoginPrompt(true);
     }
   }, [status, fetchRoomData, fetchVoteStatus]);
@@ -318,69 +355,85 @@ export default function RoomPage() {
 
   const isModified = JSON.stringify([...tempSelectedIds].sort()) !== JSON.stringify([...votedPlaceIds].sort());
 
-  const handleSignIn = () => {
-    if (loginNickname.trim()) {
-      localStorage.setItem('pendingNickname', loginNickname.trim());
-    }
-    signIn('kakao', { callbackUrl: window.location.href });
-  };
-
-  if (status === 'loading' || loading) {
+  // 로그인 및 닉네임 등록 프롬프트
+  if (showLoginPrompt) {
     return (
-      <main className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-slate-200 border-t-orange-500 rounded-full animate-spin"></div>
-      </main>
-    );
-  }
+      <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-slate-900 selection:bg-orange-500/30">
+        {/* 상단 네비게이션 */}
+        <div className="fixed top-6 left-6 z-[100]">
+          <button 
+            onClick={() => router.back()}
+            className="p-3 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-slate-900 hover:border-orange-200 transition-all shadow-sm group"
+          >
+            <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
+          </button>
+        </div>
+        <div className="fixed top-6 right-6 z-[100]">
+          <button 
+            onClick={() => router.push('/')}
+            className="p-3 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-slate-900 hover:border-orange-200 transition-all shadow-sm group"
+          >
+            <Home className="w-6 h-6 group-hover:scale-110 transition-transform" />
+          </button>
+        </div>
 
-  if (status === 'unauthenticated' || showLoginPrompt) {
-    return (
-      <main className="min-h-screen bg-slate-50 text-slate-900 flex flex-col items-center justify-center p-6 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-white via-slate-50 to-slate-100">
-        <div className="w-full max-w-md p-8 rounded-3xl bg-white border border-slate-200/50 backdrop-blur-xl shadow-2xl shadow-slate-200/50 animate-in fade-in zoom-in duration-500">
-          <div className="text-center space-y-6">
-            <div className="flex justify-center">
-              <div className="w-16 h-16 bg-gradient-to-tr from-orange-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-3">
-                <span className="text-3xl font-bold">📍</span>
-              </div>
+        <div className="w-full max-w-sm">
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl shadow-slate-200/50 text-center">
+            <div className="w-20 h-20 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Users className="w-10 h-10 text-orange-500" />
             </div>
             
-            <div className="space-y-2">
-              <h1 className="text-3xl font-black bg-gradient-to-r from-orange-400 to-rose-500 bg-clip-text text-transparent">갈래 말래?</h1>
-              <p className="text-slate-500 font-medium tracking-tight">초대받은 투표 방에 오신 것을 환영합니다!</p>
-            </div>
-
-            <div className="py-6 px-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-inner space-y-4">
-              <p className="text-sm text-slate-600 leading-relaxed font-medium">
-                프라이빗 투표에 참여하고 장소를 추천하려면<br/>
-                <span className="text-orange-500 font-bold underline underline-offset-4 decoration-orange-500/30">카카오 로그인</span>이 필요합니다.
-              </p>
-              
-              <div className="pt-2 text-left space-y-1">
-                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-widest pl-1">투표에 사용할 닉네임 (선택)</label>
-                <input 
-                  type="text" 
-                  autoComplete="off"
-                  value={loginNickname}
-                  onChange={(e) => setLoginNickname(e.target.value)}
-                  placeholder="미입력 시 카카오톡 이름 사용" 
-                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-orange-500/50 text-sm text-slate-900 placeholder-slate-400 shadow-sm transition-colors"
-                />
-              </div>
-            </div>
-
-            <button 
-              onClick={handleSignIn}
-              className="group w-full py-4 rounded-2xl bg-[#FEE500] text-[#191919] font-bold text-lg flex items-center justify-center gap-3 hover:bg-[#FDD800] transition-all active:scale-[0.98] shadow-[0_0_30px_-10px_rgba(254,229,0,0.4)]"
-            >
-              <svg className="w-6 h-6 transform group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 3c-4.97 0-9 3.073-9 6.863 0 2.456 1.69 4.606 4.24 5.86l-.84 3.124c-.1.35.1.7.45.6.3-.1.55-.25.85-.45l3.55-2.352c.25.05.5.05.75.05 4.97 0 9-3.073 9-6.863S16.97 3 12 3z"/>
-              </svg>
-              카카오로 참여하기
-            </button>
-
-            <button onClick={() => router.push('/')} className="text-xs text-slate-400 hover:text-slate-600 underline transition-colors">
-              다음에 할게요
-            </button>
+            {status === 'authenticated' ? (
+              <>
+                <h1 className="text-2xl font-bold text-slate-900 mb-2">반가워요! 🎉</h1>
+                <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+                  투표에서 사용할 이름을 정해주세요.<br />
+                  언제든 나중에 수정할 수 있어요.
+                </p>
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="text"
+                      placeholder="닉네임 입력 (1~20자)"
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        setNicknameError('');
+                      }}
+                      onKeyDown={(e) => e.key === 'Enter' && handleJoinWithNickname()}
+                      className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-base focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all text-center font-bold"
+                    />
+                    {nicknameError && (
+                      <p className="text-rose-500 text-xs font-semibold text-center">{nicknameError}</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleJoinWithNickname}
+                    disabled={isJoining}
+                    className="w-full bg-gradient-to-r from-orange-500 to-rose-600 py-4 rounded-2xl text-white font-bold text-lg shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                  >
+                    {isJoining ? '등록 중...' : '시작하기'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h1 className="text-2xl font-bold text-slate-900 mb-2">함께 투표해요!</h1>
+                <p className="text-slate-500 text-sm mb-10 leading-relaxed">
+                  이 방의 투표에 참여하려면<br />
+                  카카오 로그인으로 본인을 인증해주세요.
+                </p>
+                <button
+                  onClick={() => signIn('kakao')}
+                  className="w-full bg-[#FEE500] py-4 rounded-2xl text-black/85 font-bold text-lg shadow-lg shadow-[#FEE500]/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                >
+                  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
+                    <path d="M12 3C6.477 3 2 6.273 2 10.312c0 2.628 1.83 4.935 4.606 6.17-.152.545-.583 2.05-.626 2.22-.053.21.077.208.163.15.068-.046 1.078-.718 2.302-1.536 1.01.272 2.078.414 3.175.414 5.523 0 10-3.273 10-7.312S17.523 3 12 3z"/>
+                  </svg>
+                  <span>카카오 참여하기</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </main>

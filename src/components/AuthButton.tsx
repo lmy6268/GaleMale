@@ -3,6 +3,7 @@
 import { signIn, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Edit3, Check, X } from 'lucide-react';
 
 export function AuthButton() {
   const { data: session, status } = useSession();
@@ -11,6 +12,10 @@ export function AuthButton() {
   const [nicknameLoading, setNicknameLoading] = useState(false);
   const [checkingNickname, setCheckingNickname] = useState(true);
   const [nicknameError, setNicknameError] = useState('');
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [editNicknameInput, setEditNicknameInput] = useState('');
+  const [isEditLoading, setIsEditLoading] = useState(false);
+  const [editError, setEditError] = useState('');
 
   // 로그인 후 닉네임 존재 여부 확인
   useEffect(() => {
@@ -56,6 +61,56 @@ export function AuthButton() {
       setNicknameError('서버에 연결할 수 없습니다.');
     } finally {
       setNicknameLoading(false);
+    }
+  };
+
+  // 닉네임 수정 모드 진입
+  const handleStartEdit = () => {
+    setEditNicknameInput(nickname || '');
+    setEditError('');
+    setIsEditingNickname(true);
+  };
+
+  // 닉네임 수정 저장
+  const handleSaveNickname = async () => {
+    const trimmed = editNicknameInput.trim();
+    if (!trimmed) {
+      setEditError('닉네임을 입력해주세요.');
+      return;
+    }
+    
+    // 유효성 체크
+    const nicknameRegex = /^[a-zA-Z가-힣]{3,20}$/;
+    if (!nicknameRegex.test(trimmed)) {
+      setEditError('3~20자의 영문 또는 한글만 가능합니다.');
+      return;
+    }
+
+    if (trimmed === nickname) {
+      setIsEditingNickname(false);
+      return;
+    }
+
+    setIsEditLoading(true);
+    setEditError('');
+
+    try {
+      const res = await fetch('/api/user/nickname', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname: trimmed }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setNickname(data.nickname);
+        setIsEditingNickname(false);
+      } else {
+        setEditError(data.error || '수정에 실패했습니다.');
+      }
+    } catch {
+      setEditError('서버 오류가 발생했습니다.');
+    } finally {
+      setIsEditLoading(false);
     }
   };
 
@@ -105,9 +160,56 @@ export function AuthButton() {
   if (session && nickname) {
     return (
       <div className="flex flex-col gap-4 w-full items-center">
-        <p className="text-slate-600 text-base font-medium">
-          안녕하세요, <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-500 font-bold">{nickname}</span>님 👋
-        </p>
+        <div className="flex flex-col items-center gap-1.5">
+          {isEditingNickname ? (
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={editNicknameInput}
+                  onChange={e => {
+                    setEditNicknameInput(e.target.value);
+                    setEditError('');
+                  }}
+                  onKeyDown={e => e.key === 'Enter' && handleSaveNickname()}
+                  autoFocus
+                  className="px-3 py-1.5 w-40 text-center rounded-xl bg-slate-50 border border-orange-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all font-bold"
+                />
+                <div className="flex gap-1">
+                  <button
+                    onClick={handleSaveNickname}
+                    disabled={isEditLoading}
+                    className="p-1.5 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors disabled:opacity-50"
+                  >
+                    <Check className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setIsEditingNickname(false)}
+                    className="p-1.5 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              {editError && (
+                <p className="text-[10px] text-rose-500 font-medium">{editError}</p>
+              )}
+            </div>
+          ) : (
+            <p className="text-slate-600 text-base font-medium">
+              안녕하세요, 
+              <span 
+                onClick={handleStartEdit}
+                className="group cursor-pointer mx-1 border-b border-dashed border-slate-300 hover:border-orange-400 transition-all pb-0.5 inline-flex items-center gap-1.5"
+                title="닉네임 수정"
+              >
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-500 font-bold whitespace-nowrap">{nickname}</span>
+                <Edit3 className="w-3.5 h-3.5 text-slate-400 group-hover:text-orange-500 transition-all group-hover:scale-110" />
+              </span>
+              님 👋
+            </p>
+          )}
+        </div>
 
         <Link 
           href="/room/create"

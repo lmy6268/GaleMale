@@ -3,7 +3,8 @@
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Home, Calendar, Users, MapPin, ExternalLink, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronLeft, Home, Calendar, Users, MapPin, ChevronRight, Trash2 } from 'lucide-react';
 
 interface RoomSummary {
   hashedId: string;
@@ -49,10 +50,10 @@ export default function MyRoomsPage() {
   };
 
   const getStatus = (room: RoomSummary) => {
-    const isExpired = new Date(room.deadline) < new Date();
-    if (isExpired) return { label: '마감됨', color: 'bg-slate-100 text-slate-400 border-slate-200' };
-    if (room.totalVotes > 0) return { label: '진행 중', color: 'bg-emerald-50 text-emerald-600 border-emerald-100' };
-    return { label: '투표 대기', color: 'bg-orange-50 text-orange-600 border-orange-100' };
+    if (room.isClosed || (room.deadline && new Date(room.deadline) < new Date())) {
+      return { label: '투표 마감', color: 'bg-slate-100 text-slate-500 border-slate-200' };
+    }
+    return { label: '진행중', color: 'bg-orange-50 text-orange-500 border-orange-100' };
   };
 
   const formatDate = (dateStr: string) => {
@@ -68,7 +69,8 @@ export default function MyRoomsPage() {
       } else {
         alert('삭제에 실패했습니다.');
       }
-    } catch (e) {
+    } catch (err) {
+      console.error(err);
       alert('오류가 발생했습니다.');
     }
   };
@@ -169,13 +171,13 @@ export default function MyRoomsPage() {
                     </div>
 
                     <div className="flex flex-row md:flex-col gap-3 justify-end items-center">
-                      <button
-                        onClick={() => router.push(`/room/${room.hashedId}`)}
-                        className="flex-1 md:w-32 py-3 rounded-2xl bg-slate-900 text-white font-bold hover:bg-orange-600 transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+                      <Link
+                        href={`/room/${room.hashedId}`}
+                        className="flex-1 w-full md:w-32 flex items-center justify-center gap-2 bg-slate-900 py-3 rounded-2xl text-white font-bold hover:bg-orange-600 transition-all shadow-md active:scale-95 group"
                       >
-                        <ExternalLink className="w-4 h-4" />
-                        보기
-                      </button>
+                        <span>입장하기</span>
+                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </Link>
                       <button
                         onClick={() => handleDelete(room.hashedId)}
                         className="p-3 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 hover:bg-rose-500 hover:text-white transition-all shadow-sm active:scale-95"

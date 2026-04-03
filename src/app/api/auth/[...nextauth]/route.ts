@@ -12,23 +12,20 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account }) {
-      if (account?.provider === 'kakao') {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === 'kakao' && profile) {
+        const kakaoProfile = profile as any;
         try {
           await connectToDatabase();
-          const kakaoId = user.id;
-          const nickname = user.name || "익명";
-          const image = user.image || "";
-
           // 사용자 정보 업설트 (Update or Insert)
-          // 닉네임은 최초 생성(insert)시에만 설정되도록 하고, 이미지는 매번 업데이트합니다.
           await User.findOneAndUpdate(
-            { kakaoUserId: kakaoId },
+            { kakaoUserId: user.id },
             { 
-              $setOnInsert: { nickname }, 
-              $set: { image } 
+              kakaoUserId: user.id,
+              email: kakaoProfile.kakao_account?.email || '',
+              image: kakaoProfile.properties?.profile_image || ''
             },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
           );
         } catch (err) {
           console.error("User sync error:", err);
