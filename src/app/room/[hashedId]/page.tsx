@@ -780,7 +780,7 @@ export default function RoomPage() {
                       setMapTargetCenter(undefined);
                     }}
                     onClick={() => toggleSelection(option.placeId)}
-                    className={`p-6 rounded-[2.5rem] border transition-all duration-300 cursor-pointer group shadow-sm hover:shadow-xl relative overflow-hidden ${
+                    className={`p-6 rounded-[2.5rem] border transition-all duration-300 cursor-pointer group shadow-sm hover:shadow-xl relative overflow-hidden select-none outline-none ${
                       isWinner ? 'bg-gradient-to-br from-white to-orange-50/30' : 'bg-white'
                     } ${
                       isActive 
@@ -791,17 +791,17 @@ export default function RoomPage() {
                     }`}
                   >
                     {isWinner && (
-                      <div className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 bg-orange-400/10 blur-3xl rounded-full" />
+                      <div className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 bg-orange-400/10 blur-3xl rounded-full pointer-events-none" />
                     )}
                     
-                    <div className="flex justify-between items-start gap-5 relative z-10">
+                    <div className="flex justify-between items-start gap-5 relative z-10 pointer-events-none">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-1.5">
                           <div className="flex items-center gap-2">
                              {isWinner && <span className="text-xl animate-in zoom-in-50 duration-500 drop-shadow-md">👑</span>}
                              <span className={`font-extrabold text-xl tracking-tight transition-colors uppercase select-none cursor-default ${isWinner ? 'text-orange-600' : 'text-slate-900 group-hover:text-orange-600'}`}>{option.name}</span>
                           </div>
-                          <div className="flex gap-1 items-center">
+                          <div className="flex gap-1 items-center pointer-events-auto">
                           {option.placeUrl && <a href={option.placeUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:text-slate-900 transition-all"><ExternalLink className="w-4 h-4" /></a>}
                           {isCreator && (
                             <button 
@@ -814,8 +814,8 @@ export default function RoomPage() {
                           )}
                         </div>
                       </div>
-                      <p className="text-[12px] text-slate-500 mb-4 truncate">{option.address}</p>
-                      <div className="flex items-center gap-3">
+                      <p className="text-[12px] text-slate-500 mb-4 truncate select-none cursor-default">{option.address}</p>
+                      <div className="flex items-center gap-3 select-none cursor-default">
                         <div className="text-2xl font-black text-orange-500">{option.voteCount}<span className="text-[10px] text-slate-600 font-bold ml-1">표</span></div>
                         <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
                           <div className="h-full bg-gradient-to-r from-orange-400 to-orange-600 shadow-[0_0_10px_rgba(249,115,22,0.3)]" style={{ width: `${(option.voteCount / totalVotes) * 100}%` }}></div>
@@ -823,8 +823,8 @@ export default function RoomPage() {
                         {isActuallyVoted && <div className="text-[10px] font-black text-emerald-500">MY VOTE</div>}
                       </div>
                     </div>
-                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${isActive ? 'bg-emerald-500 border-emerald-500 scale-110 shadow-lg shadow-emerald-500/30' : 'border-slate-200 bg-white'}`}>
-                      {isActive && <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
+                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all select-none cursor-pointer pointer-events-auto ${isActive ? 'bg-emerald-500 border-emerald-500 scale-110 shadow-lg shadow-emerald-500/30' : 'border-slate-200 bg-white'}`}>
+                      {isActive && <svg className="w-5 h-5 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
                     </div>
                   </div>
                 </div>
