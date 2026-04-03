@@ -16,8 +16,8 @@ import {
   Edit3,
   ExternalLink,
   Clock,
-  Lock,
-  Unlock
+  Play,
+  Pause
 } from 'lucide-react';
 
 interface KakaoPlace {
@@ -533,13 +533,29 @@ export default function RoomPage() {
             )}
             {/* 방장 정보 표시 */}
             {room.creatorNickname && (
-              <div className="flex items-center gap-2 mt-1 px-3 py-1 bg-white border border-slate-200 rounded-full shadow-sm">
-                {room.creatorImage ? (
-                  <Image src={room.creatorImage} alt="creator" width={16} height={16} className="rounded-full border border-slate-100" />
-                ) : (
-                  <span className="text-[10px]">👑</span>
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
+                <div className="flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-full shadow-sm">
+                  {room.creatorImage ? (
+                    <Image src={room.creatorImage} alt="creator" width={16} height={16} className="rounded-full border border-slate-100" />
+                  ) : (
+                    <span className="text-[10px]">👑</span>
+                  )}
+                  <span className="text-[10px] text-slate-500 font-bold tracking-widest">{room.creatorNickname} 님의 투표방</span>
+                </div>
+                
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-black border border-blue-500/20 shadow-sm transition-all hover:bg-blue-500/20">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
+                  </span>
+                  {timeRemaining}
+                </div>
+
+                {room.allowMultipleVotes && (
+                  <div className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-500 text-[10px] font-black border border-orange-500/20 shadow-sm transition-all hover:bg-orange-500/20">
+                    중복 투표 가능
+                  </div>
                 )}
-                <span className="text-[10px] text-slate-500 font-bold tracking-widest">{room.creatorNickname} 님의 투표방</span>
               </div>
             )}
           </div>
@@ -553,67 +569,68 @@ export default function RoomPage() {
               현재 <span className="text-slate-900 font-bold group-hover:text-orange-600">{room.participantCount || 0}명</span> 참여
               <ChevronLeft className="w-3 h-3 text-slate-300 group-hover:text-orange-400 transition-transform rotate-180 group-hover:translate-x-0.5" />
             </button>
-            <div className="flex flex-wrap items-center justify-center gap-2 px-3 py-2 rounded-xl bg-white text-slate-500 border border-slate-200 shadow-sm">
+            <div className="flex flex-wrap items-center justify-center gap-4 px-4 py-2.5 rounded-2xl bg-white text-slate-500 border border-slate-200 shadow-sm transition-all hover:border-blue-100 group/deadline">
               <div className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-blue-500/70" />
+                <Calendar className="w-3.5 h-3.5 text-blue-500/70 group-hover/deadline:scale-110 transition-transform" />
                 <span className="font-medium text-slate-700">
                   마감: {new Date(room.deadline).toLocaleDateString('ko-KR')} {new Date(room.deadline).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}
                 </span>
               </div>
-              {!isClosed && (
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[10px] font-black border border-blue-500/20">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
-                    </span>
-                    {timeRemaining}
-                  </div>
-                  {room.allowMultipleVotes && (
-                    <div className="px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-500 text-[10px] font-black border border-orange-500/20">
-                      중복 투표 가능
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
+            
             {isCreator && (
-              <div className="flex items-center gap-1.5 ml-1 border-l border-slate-200 pl-3">
+              <div className="flex items-center gap-1 ml-1">
                 {!isClosed && (
-                  <button 
-                    onClick={handleOpenDeadlineEditor} 
-                    className="p-2 rounded-xl text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all group"
-                    title="시간 변경"
-                  >
-                    <Clock className="w-4 h-4" />
-                  </button>
+                  <div className="relative group/tooltip">
+                    <button 
+                      onClick={handleOpenDeadlineEditor} 
+                      className="p-2 rounded-xl text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all group"
+                    >
+                      <Clock className="w-4 h-4" />
+                    </button>
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[100] shadow-lg">
+                      시간 변경
+                    </div>
+                  </div>
                 )}
                 
                 {!isClosed ? (
-                  <button 
-                    onClick={() => handleUpdateRoom({ isClosed: true })} 
-                    className="p-2 rounded-xl text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all group"
-                    title="강제 마감"
-                  >
-                    <Lock className="w-4 h-4" />
-                  </button>
+                  <div className="relative group/tooltip">
+                    <button 
+                      onClick={() => handleUpdateRoom({ isClosed: true })} 
+                      className="p-2 rounded-xl text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all group"
+                    >
+                      <Pause className="w-4 h-4 fill-current opacity-70" />
+                    </button>
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[100] shadow-lg">
+                      투표 종료하기
+                    </div>
+                  </div>
                 ) : (
-                  <button 
-                    onClick={() => handleUpdateRoom({ isClosed: false })} 
-                    className="p-2 rounded-xl text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all group"
-                    title="다시 열기"
-                  >
-                    <Unlock className="w-4 h-4" />
-                  </button>
+                  <div className="relative group/tooltip">
+                    <button 
+                      onClick={() => handleUpdateRoom({ isClosed: false })} 
+                      className="p-2 rounded-xl text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all group"
+                    >
+                      <Play className="w-4 h-4 fill-current opacity-70" />
+                    </button>
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[100] shadow-lg">
+                      투표 재개하기
+                    </div>
+                  </div>
                 )}
                 
-                <button 
-                  onClick={handleDeleteRoom} 
-                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all group"
-                  title="투표 삭제"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="relative group/tooltip">
+                  <button 
+                    onClick={handleDeleteRoom} 
+                    className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all group"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[100] shadow-lg">
+                    투표 삭제하기
+                  </div>
+                </div>
               </div>
             )}
             {isClosed && !isCreator && <span className="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 text-[10px] font-black uppercase">마감 완료</span>}
