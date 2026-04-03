@@ -368,6 +368,17 @@ export default function RoomPage() {
 
   const isModified = JSON.stringify([...tempSelectedIds].sort()) !== JSON.stringify([...votedPlaceIds].sort());
 
+  const timeRemaining = room ? (() => {
+    const diff = new Date(room.deadline).getTime() - new Date().getTime();
+    if (diff <= 0) return "투표 종료";
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    if (days > 0) return `${days}일 ${hours}시간 남음`;
+    if (hours > 0) return `${hours}시간 ${mins}분 남음`;
+    return `${mins}분 남음`;
+  })() : "";
+
   // 로그인 및 닉네임 등록 프롬프트
   if (showLoginPrompt) {
     return (
@@ -556,15 +567,7 @@ export default function RoomPage() {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
                     </span>
-                    {(() => {
-                      const diff = new Date(room.deadline).getTime() - new Date().getTime();
-                      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                      if (days > 0) return `${days}일 ${hours}시간 남음`;
-                      if (hours > 0) return `${hours}시간 ${mins}분 남음`;
-                      return `${mins}분 남음`;
-                    })()}
+                    {timeRemaining}
                   </div>
                   {room.allowMultipleVotes && (
                     <div className="px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-500 text-[10px] font-black border border-orange-500/20">
@@ -785,6 +788,19 @@ export default function RoomPage() {
 
         {/* 푸터 */}
         <div className="pt-12 flex flex-col gap-4 border-t border-slate-200">
+          {!isClosed && (
+            <div className="flex justify-center gap-2 mb-1 animate-in fade-in slide-in-from-bottom-2 duration-700">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/5 text-blue-500 text-[11px] font-black border border-blue-500/10 shadow-sm">
+                <Clock className="w-3.5 h-3.5" />
+                {timeRemaining}
+              </div>
+              {room.allowMultipleVotes && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/5 text-orange-500 text-[11px] font-black border border-orange-500/10 shadow-sm">
+                  중복 투표 가능
+                </div>
+              )}
+            </div>
+          )}
           {(isModified || (votedPlaceIds.length === 0 && tempSelectedIds.length > 0)) && (
             <button
               onClick={handleSaveVote}
