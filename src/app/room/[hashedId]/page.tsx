@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import MapComponent, { MapPlace } from '@/components/MapComponent';
@@ -55,6 +55,7 @@ export default function RoomPage() {
   const [votedPlaceIds, setVotedPlaceIds] = useState<string[]>([]);
   const [tempSelectedIds, setTempSelectedIds] = useState<string[]>([]);
   const [isVoting, setIsVoting] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   
   const [mapTargetCenter, setMapTargetCenter] = useState<{ lat: number, lng: number } | undefined>(undefined);
   const [hoveredPlaceId, setHoveredPlaceId] = useState<string | null>(null);
@@ -105,6 +106,10 @@ export default function RoomPage() {
     if (status === 'authenticated') {
       fetchRoomData();
       fetchVoteStatus();
+      setShowLoginPrompt(false);
+    } else if (status === 'unauthenticated') {
+      setLoading(false);
+      setShowLoginPrompt(true);
     }
   }, [status, fetchRoomData, fetchVoteStatus]);
 
@@ -249,6 +254,10 @@ export default function RoomPage() {
 
   const isModified = JSON.stringify([...tempSelectedIds].sort()) !== JSON.stringify([...votedPlaceIds].sort());
 
+  const handleSignIn = () => {
+    signIn('kakao', { callbackUrl: window.location.href });
+  };
+
   if (status === 'loading' || loading) {
     return (
       <main className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -257,12 +266,44 @@ export default function RoomPage() {
     );
   }
 
-  if (status === 'unauthenticated') {
+  if (status === 'unauthenticated' || showLoginPrompt) {
     return (
-      <main className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-2xl font-bold text-white mb-4">로그인이 필요합니다.</h1>
-        <p className="text-slate-400 mb-8">안전한 투표 진행을 위해 카카오 로그인을 먼저 진행해주세요.</p>
-        <button onClick={() => router.push('/')} className="px-6 py-3 rounded-xl bg-[#FEE500] text-black font-bold">홈으로 돌아가기</button>
+      <main className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black">
+        <div className="w-full max-w-md p-8 rounded-3xl bg-slate-900/40 border border-white/5 backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in duration-500">
+          <div className="text-center space-y-6">
+            <div className="flex justify-center">
+              <div className="w-16 h-16 bg-gradient-to-tr from-orange-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-3">
+                <span className="text-3xl font-bold">📍</span>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <h1 className="text-3xl font-black bg-gradient-to-r from-orange-400 to-rose-500 bg-clip-text text-transparent">갈래 말래?</h1>
+              <p className="text-slate-400 font-medium tracking-tight">초대받은 투표 방에 오신 것을 환영합니다!</p>
+            </div>
+
+            <div className="py-6 px-4 rounded-2xl bg-white/5 border border-white/5 space-y-3">
+              <p className="text-sm text-slate-300 leading-relaxed font-medium">
+                프라이빗 투표에 참여하고 장소를 추천하려면<br/>
+                <span className="text-orange-400 font-bold underline underline-offset-4 decoration-orange-500/30">카카오 로그인</span>이 필요합니다.
+              </p>
+            </div>
+
+            <button 
+              onClick={handleSignIn}
+              className="group w-full py-4 rounded-2xl bg-[#FEE500] text-[#191919] font-bold text-lg flex items-center justify-center gap-3 hover:bg-[#FDD800] transition-all active:scale-[0.98] shadow-[0_0_30px_-10px_rgba(254,229,0,0.4)]"
+            >
+              <svg className="w-6 h-6 transform group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 3c-4.97 0-9 3.073-9 6.863 0 2.456 1.69 4.606 4.24 5.86l-.84 3.124c-.1.35.1.7.45.6.3-.1.55-.25.85-.45l3.55-2.352c.25.05.5.05.75.05 4.97 0 9-3.073 9-6.863S16.97 3 12 3z"/>
+              </svg>
+              카카오로 참여하기
+            </button>
+
+            <button onClick={() => router.push('/')} className="text-xs text-slate-500 hover:text-slate-300 underline transition-colors">
+              다음에 할게요
+            </button>
+          </div>
+        </div>
       </main>
     );
   }
