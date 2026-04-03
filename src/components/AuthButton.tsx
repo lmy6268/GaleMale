@@ -3,6 +3,7 @@
 import { signIn, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Edit3, Check, X, ArrowRight } from 'lucide-react';
 
 export function AuthButton() {
   const { data: session, status } = useSession();
@@ -11,6 +12,10 @@ export function AuthButton() {
   const [nicknameLoading, setNicknameLoading] = useState(false);
   const [checkingNickname, setCheckingNickname] = useState(true);
   const [nicknameError, setNicknameError] = useState('');
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [editNicknameInput, setEditNicknameInput] = useState('');
+  const [isEditLoading, setIsEditLoading] = useState(false);
+  const [editError, setEditError] = useState('');
 
   // 로그인 후 닉네임 존재 여부 확인
   useEffect(() => {
@@ -59,18 +64,68 @@ export function AuthButton() {
     }
   };
 
+  // 닉네임 수정 모드 진입
+  const handleStartEdit = () => {
+    setEditNicknameInput(nickname || '');
+    setEditError('');
+    setIsEditingNickname(true);
+  };
+
+  // 닉네임 수정 저장
+  const handleSaveNickname = async () => {
+    const trimmed = editNicknameInput.trim();
+    if (!trimmed) {
+      setEditError('닉네임을 입력해주세요.');
+      return;
+    }
+    
+    // 유효성 체크
+    const nicknameRegex = /^[a-zA-Z가-힣]{3,20}$/;
+    if (!nicknameRegex.test(trimmed)) {
+      setEditError('3~20자의 영문 또는 한글만 가능합니다.');
+      return;
+    }
+
+    if (trimmed === nickname) {
+      setIsEditingNickname(false);
+      return;
+    }
+
+    setIsEditLoading(true);
+    setEditError('');
+
+    try {
+      const res = await fetch('/api/user/nickname', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname: trimmed }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setNickname(data.nickname);
+        setIsEditingNickname(false);
+      } else {
+        setEditError(data.error || '수정에 실패했습니다.');
+      }
+    } catch {
+      setEditError('서버 오류가 발생했습니다.');
+    } finally {
+      setIsEditLoading(false);
+    }
+  };
+
   // 로딩 상태
   if (status === 'loading' || (status === 'authenticated' && checkingNickname)) {
-    return <div className="h-[60px] w-full animate-pulse bg-slate-800 rounded-2xl"></div>;
+    return <div className="h-[60px] w-full animate-pulse bg-slate-100 rounded-2xl"></div>;
   }
 
   // 로그인 됨 + 닉네임 미등록 → 닉네임 등록 UI
   if (session && nickname === null) {
     return (
       <div className="flex flex-col gap-4 w-full items-center">
-        <div className="w-full p-5 rounded-2xl bg-slate-800/60 backdrop-blur-sm border border-white/10">
-          <p className="text-slate-300 text-sm font-medium mb-1">환영합니다! 🎉</p>
-          <p className="text-slate-400 text-xs mb-4">투표에서 사용할 이름을 등록해주세요.</p>
+        <div className="w-full p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">반가워요</h1>
+          <p className="text-slate-500 text-xs mb-4">투표에서 사용할 이름을 등록해주세요.</p>
 
           <div className="flex gap-2">
             <input
@@ -83,18 +138,18 @@ export function AuthButton() {
               onKeyDown={e => e.key === 'Enter' && handleSetNickname()}
               placeholder="닉네임 입력 (최대 20자)"
               maxLength={20}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/30 transition-all"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/10 transition-all shadow-sm"
             />
             <button
               onClick={handleSetNickname}
               disabled={nicknameLoading}
-              className="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-rose-600 text-white text-sm font-bold transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+              className="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-bold transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
             >
               {nicknameLoading ? '...' : '등록'}
             </button>
           </div>
           {nicknameError && (
-            <p className="text-red-400 text-xs mt-2">{nicknameError}</p>
+            <p className="text-orange-400 text-xs mt-2">{nicknameError}</p>
           )}
         </div>
       </div>
@@ -105,25 +160,69 @@ export function AuthButton() {
   if (session && nickname) {
     return (
       <div className="flex flex-col gap-4 w-full items-center">
-        <p className="text-slate-300 text-base font-medium">
-          안녕하세요, <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-400 font-bold">{nickname}</span>님 👋
-        </p>
+        <div className="flex flex-col items-center gap-1.5">
+          {isEditingNickname ? (
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={editNicknameInput}
+                  onChange={e => {
+                    setEditNicknameInput(e.target.value);
+                    setEditError('');
+                  }}
+                  onKeyDown={e => e.key === 'Enter' && handleSaveNickname()}
+                  autoFocus
+                  className="px-3 py-1.5 w-40 text-center rounded-xl bg-slate-50 border border-orange-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all font-bold"
+                />
+                <div className="flex gap-1">
+                  <button
+                    onClick={handleSaveNickname}
+                    disabled={isEditLoading}
+                    className="p-1.5 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors disabled:opacity-50"
+                  >
+                    <Check className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setIsEditingNickname(false)}
+                    className="p-1.5 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              {editError && (
+                <p className="text-[10px] text-orange-500 font-medium">{editError}</p>
+              )}
+            </div>
+          ) : (
+            <p className="text-slate-600 text-base font-medium">
+              안녕하세요, 
+              <span 
+                onClick={handleStartEdit}
+                className="group cursor-pointer mx-1 border-b border-dashed border-slate-300 hover:border-orange-400 transition-all pb-0.5 inline-flex items-center gap-1.5"
+                title="닉네임 수정"
+              >
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600 font-bold whitespace-nowrap">{nickname}</span>
+                <Edit3 className="w-3.5 h-3.5 text-slate-400 group-hover:text-orange-500 transition-all group-hover:scale-110" />
+              </span>님 반갑습니다.
+            </p>
+          )}
+        </div>
 
         <Link 
           href="/room/create"
-          className="group relative flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-orange-500 to-rose-600 px-6 py-4 text-lg font-bold text-white transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_40px_-5px_rgba(244,63,94,0.5)] active:scale-[0.98]"
+          className="group relative flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 text-lg font-bold text-white transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_40px_-5px_rgba(249,115,22,0.5)] active:scale-[0.98]"
         >
           <span>새 투표 방 만들기</span>
-          <svg className="w-6 h-6 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-          </svg>
+          <ArrowRight className="w-6 h-6 transition-transform duration-300 group-hover:translate-x-1" />
         </Link>
 
         <Link
           href="/room/my"
-          className="group flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-slate-800/60 backdrop-blur-sm px-6 py-3.5 text-base font-semibold text-slate-300 transition-all duration-300 hover:bg-slate-700/60 hover:text-white hover:border-white/20 hover:scale-[1.02] active:scale-[0.98]"
+          className="group flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-6 py-3.5 text-base font-semibold text-slate-600 transition-all duration-300 hover:bg-slate-50 hover:text-slate-900 hover:border-orange-200 hover:scale-[1.02] active:scale-[0.98] shadow-sm"
         >
-          <svg className="w-5 h-5 text-orange-400/80" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <svg className="w-5 h-5 text-orange-500/80" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
           </svg>
           <span>내 투표 관리하기</span>
